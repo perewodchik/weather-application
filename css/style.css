@@ -20,6 +20,7 @@ header {
     max-height: 48px;
     flex-grow: 1;
     margin-bottom:8px;
+    width: 100%;
 }
 
 main {
@@ -29,7 +30,7 @@ main {
 }
 
 #sidebar {
-    min-width: 128px;
+    min-width: 288px;
     max-width: 384px;
     height: 100%;
     flex-grow: 1;
@@ -74,23 +75,23 @@ main {
 #form__submit {
     height: 48px;
     width: 100%;
+    text-align: center;
     background-color: #789cea;
     border: 1px solid #789cea;
 }
 
 #map {
-    min-width: 256px;
+    min-width: 384px;
+    width: 512px;
+    height: 642px;
     flex-grow: 3;
-    background: url(../img/map_example.png) ;
-    background-size: cover;
     margin-left: 8px;
     margin-right: 8px;
-    height:auto;
     display: flex;
 }
 
 #weather {
-    min-width: 128px;
+    min-width: 324px;
     max-width: 384px;
     flex-grow: 1;
     background-color:  #bec7ca;
@@ -115,7 +116,7 @@ main {
     justify-items: center;
     border: 2px solid #ff00ea;
     border-radius: 16px;
-    background-color: #789cea;
+    background-color: #b7c9f1;
 }
 
 .card__time {

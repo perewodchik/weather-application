@@ -1,6 +1,7 @@
 <!DOCTYPE html5>
 <head>
     <title>Weather Application</title>
+    <script src="https://api-maps.yandex.ru/2.1/?apikey=d2617171-c139-4325-a4bd-b19df1ae61bb&lang=ru_RU" type="text/javascript"></script>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -8,51 +9,7 @@
 
     </header>
     <main>
-        <div id="sidebar">
-            <form id="sidebar__form">
-                <fieldset class ="fieldset-text">
-                    <legend>Стартовая позиция</legend>
-
-                    <label class="label-text" for="start__longtitude"><span>Долгота:  </span> 
-                        <input id="start__longtitude" name="start__longtitude">
-                    </label>
-
-                    <label class="label-text" for="start__latitude"><span>Широта:  </span> 
-                        <input id="start__latitude" name="start__latitude">
-                    </label>
-                    
-                </fieldset>
-
-                <fieldset class ="fieldset-text">
-                    <legend>Конечная позиция</legend>
-
-                    <label class="label-text" for="end__longtitude"><span>Долгота:  </span> 
-                        <input id="end__longtitude" name="end__longtitude">
-                    </label>
-
-                    <label class="label-text" for="end__latitude"><span>Широта:  </span> 
-                        <input id="end__latitude" name="end__latitude">
-                    </label>
-
-                </fieldset>
-
-                <fieldset class ="fieldset-radio">
-                    <legend>Тип перемещения</legend>
-                    
-                    <input name="travel_type" type="radio" id="radioChoice1" value="pedestrian">
-                    <label class="label-radio" for="radioChoice1">Пеший</label>
-                    <br>
-                    <input name="travel_type" type="radio" id="radioChoice2" value="bicycle">
-                    <label class="label-radio" for="radioChoice2">Велосипед</label>
-
-                </fieldset>
-                <div id="form__spacer"></div>
-                <input id="form__submit" type="submit" value="Проложить маршрут"></submit>
-            </form>
-        </div>
-
-        <div id="map"></div>
-
+        
         <div id="weather">
             <div id="weather__description">Состояние погоды:</div>
 
@@ -99,8 +56,148 @@
             </div>
            
         </div>
-    </main>
-    <footer>
+
+        <div id="map"></div>
+
         
+
+        <div id="sidebar">
+            <form id="sidebar__form">
+                <fieldset class ="fieldset-text">
+                    <legend>Стартовая позиция</legend>
+
+
+                    <label class="label-text" for="start__latitude"><span>Широта:  </span> 
+                        <input id="start__latitude" name="start__latitude">
+                    </label>
+
+                    <label class="label-text" for="start__longtitude"><span>Долгота:  </span> 
+                        <input id="start__longtitude" name="start__longtitude">
+                    </label>
+
+                    
+                    
+                </fieldset>
+
+                <fieldset class ="fieldset-text">
+                    <legend>Конечная позиция</legend>
+
+                    <label class="label-text" for="end__latitude"><span>Широта:  </span> 
+                        <input id="end__latitude" name="end__latitude">
+                    </label>
+
+                    <label class="label-text" for="end__longtitude"><span>Долгота:  </span> 
+                        <input id="end__longtitude" name="end__longtitude">
+                    </label>
+
+                </fieldset>
+
+                <fieldset class ="fieldset-radio">
+                    <legend>Тип перемещения</legend>
+                    
+                    <input name="travel_type" type="radio" id="radioChoice1" value="pedestrian">
+                    <label class="label-radio" for="radioChoice1">Пеший</label>
+                    <br>
+                    <input name="travel_type" type="radio" id="radioChoice2" value="bicycle">
+                    <label class="label-radio" for="radioChoice2">Велосипед</label>
+
+                </fieldset>
+                <div id="form__spacer"></div>
+                <input id="form__submit"  value="Проложить маршрут"></submit>
+            </form>
+        </div>
+
+    </main>
+
+    <footer>
     </footer>
+
+    <script type="text/javascript">
+
+        startLatitude = document.getElementById("start__latitude");
+        startLongtitude = document.getElementById("start__longtitude");
+        endLatitude = document.getElementById("end__latitude");
+        endLongtitude = document.getElementById("end__longtitude");
+
+        submit = document.getElementById("form__submit");
+
+        ymaps.ready(init); 
+        var myMap;
+        var coords = [0,0];
+        var myRoute = undefined;
+        
+        function init() {
+        
+            myMap = new ymaps.Map("map", {
+                center: [54.724770, 20.527879], // Координаты центра карты
+                zoom: 15                        // Маcштаб карты
+            }); 
+        
+            myMap.controls.add(
+                new ymaps.control.ZoomControl()  // Добавление элемента управления картой
+            );
+
+
+            submit.addEventListener('click', function(e) {
+                route = new ymaps.route([
+                    [startLatitude.value, startLongtitude.value],
+                    [endLatitude.value, endLongtitude.value],    
+                ]).then(function(route) {
+                    myRoute && myMap.geoObjects.remove(myRoute);
+                    myMap.geoObjects.add(myRoute = route);
+                })
+
+            });
+        
+            myMap.events.add('click', function (e) {
+                if (!myMap.balloon.isOpen()) {
+                    coords = e.get('coords');
+
+                    myMap.balloon.open(coords, {
+                        contentHeader:'Выберите позицию',
+                        contentBody:
+                            '<p id="chooseStart">Стартовая позиция</p>'  +
+                            '<p id="chooseEnd">Конечная позиция</p>' + [
+                            coords[0].toPrecision(6),
+                            coords[1].toPrecision(6)
+                            ].join(', ') + '</p>',
+                        contentFooter:'<sup>Щелкните по позиции</sup>'
+                    });
+
+                    setTimeout(function(){
+                        chooseStart = document.getElementById("chooseStart");
+                        chooseEnd = document.getElementById("chooseEnd");
+
+                        chooseStart.addEventListener('click', function(){ 
+                            startLatitude.value = coords[0];
+                            startLongtitude.value = coords[1];
+                            myMap.balloon.close();
+                        }, false);
+
+                        chooseEnd.addEventListener('click', function(){ 
+                            endLatitude.value = coords[0];
+                            endLongtitude.value = coords[1];
+                            myMap.balloon.close();
+                        }, false);
+                    }, 200);
+
+                    
+
+                }
+                else {
+                    myMap.balloon.close();
+                }
+            });
+
+        };
+
+        function addMarker(location) {    
+        var geoPlacemark = new YMaps.Placemark(new YMaps.GeoPoint(location.__lng, location.__lat), { draggable: 1 });
+        //координаты добавления метки
+        geoPlacemark.name = "Название чего то";
+        geoPlacemark.description = "описание чего то";
+        map.addOverlay(geoPlacemark);//добавление метки 
+}
+        
+    </script>
 </body>
