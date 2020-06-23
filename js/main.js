@@ -14,7 +14,6 @@ window.onload = function()
     ymaps.ready(init); 
     
     function init() {
-
         /*  Инициализация карты  */
         myMap = new ymaps.Map("map", {
             center: [54.724770, 20.527879], // Координаты центра карты
@@ -56,20 +55,15 @@ window.onload = function()
                         myMap.balloon.close();
                     }, false);
                 }, 200);
-    
-                
-    
             }
             else {
                 myMap.balloon.close();
             }
         });
-
     }
         
     /*Обработчик события для кнопки "проложить маршрут" */
     submit.addEventListener('click', function(e) {
-
         /* Создаем маршрут в виде промиса */
         route = new ymaps.route([
             [startLatitude.value, startLongtitude.value],
@@ -109,7 +103,6 @@ window.onload = function()
                 preset: 'twirl#redIcon'
             });
             myPlacemarks.push(myPlacemark);
-
 
             /* Получаем ключевые точки */
             for (var i = 0; i < myRoute.getPaths().getLength(); i++) {

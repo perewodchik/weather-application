@@ -7,13 +7,13 @@
 </head>
 <body>
     <header>
-
+        <img class="header__logo" src="img/logo.png">
+        <p>WEATHER MAP</p>
     </header>
     <main>
         
         <div id="weather">
             <div id="weather__description">Состояние погоды:</div>
-
 
             <div class="weather__card">
                 <div class="card__time">8:00</div>
@@ -35,7 +35,6 @@
                 </div>
             </div>
 
-            
             <div class="weather__card">
                 <div class="card__time">16:00</div>
                 <div class="card__descriptionWrapper">
@@ -60,62 +59,48 @@
 
         <div id="map"></div>
 
-        
-
         <div id="sidebar">
             <form id="sidebar__form">
                 <fieldset class ="fieldset-text">
                     <legend>Стартовая позиция</legend>
-
-
                     <label class="label-text" for="start__latitude"><span>Широта:  </span> 
-                        <input id="start__latitude" name="start__latitude">
+                        <input disabled id="start__latitude" name="start__latitude">
                     </label>
-
                     <label class="label-text" for="start__longtitude"><span>Долгота:  </span> 
-                        <input id="start__longtitude" name="start__longtitude">
+                        <input disabled id="start__longtitude" name="start__longtitude">
                     </label>
-
-                    
-                    
                 </fieldset>
 
                 <fieldset class ="fieldset-text">
                     <legend>Конечная позиция</legend>
-
                     <label class="label-text" for="end__latitude"><span>Широта:  </span> 
-                        <input id="end__latitude" name="end__latitude">
+                        <input disabled id="end__latitude" name="end__latitude">
                     </label>
-
                     <label class="label-text" for="end__longtitude"><span>Долгота:  </span> 
-                        <input id="end__longtitude" name="end__longtitude">
+                        <input disabled id="end__longtitude" name="end__longtitude">
                     </label>
-
                 </fieldset>
 
                 <fieldset class ="fieldset-radio">
                     <legend>Тип перемещения</legend>
-                    
                     <input name="travel_type" type="radio" id="radioChoice1" value="pedestrian">
                     <label class="label-radio" for="radioChoice1">Пеший</label>
                     <br>
                     <input name="travel_type" type="radio" id="radioChoice2" value="bicycle">
                     <label class="label-radio" for="radioChoice2">Велосипед</label>
-
                 </fieldset>
+
                 <div id="form__spacer"></div>
+
                 <input id="form__submit"  value="Проложить маршрут"></submit>
             </form>
         </div>
-
     </main>
 
     <footer>
+        <a target="_blank" class="footer__a" href="https://github.com/perewodchik/weather-application">Гитхаб репозиторий проекта</a>
+        <p class="footer__copyright">© 2020</p>
     </footer>
 
-    <script src="js/main.js" type="text/javascript">
-
-        
-        
-    </script>
+    <script src="js/main.js" type="text/javascript"></script>
 </body>
