@@ -7,7 +7,7 @@
 body {
     font-family: Roboto, Geneva, Arial, Helvetica, sans-serif;
     box-sizing: padding-box;
-    background-color: #9d9ea0;
+    background-color: #ffffff;
     height: 100%;
     display: flex;
     flex-direction: column;
@@ -15,19 +15,17 @@ body {
 }
 
 header {
-    background-color: #1E88E5;
-    margin: 8px;
+    background-color: #6561f0;
     min-height: 32px;
     max-height: 48px;
     flex-grow: 1;
+    margin-bottom:8px;
 }
 
 main {
     display: flex;
     flex-direction: row;
     flex-grow: 5;
-    margin-left: 8px;
-    margin-right: 8px;
 }
 
 #sidebar {
@@ -35,7 +33,7 @@ main {
     max-width: 384px;
     height: 100%;
     flex-grow: 1;
-    background-color: #ffff8b;
+    background-color: #bec7ca;
 }
 
 #sidebar__form {
@@ -45,10 +43,10 @@ main {
     height:100%;
 }
 
-.fieldset-text {
+.fieldset-text, .fieldset-radio  {
     width: inherit;
     border-radius: 8px;
-    border-color: darkturquoise;
+    border-color: #ff00ea;
     margin-top: 8px;
     margin-left: 8px;
     margin-right: 8px; 
@@ -69,15 +67,6 @@ main {
     flex-grow: 1;
 }
 
-.fieldset-radio {
-    width: inherit;
-    border-radius: 8px;
-    border-color: darkturquoise;
-    margin-top: 8px;
-    margin-left: 8px;
-    margin-right: 8px;
-}
-
 #form__spacer {
     flex-grow: 1;
 }
@@ -85,8 +74,8 @@ main {
 #form__submit {
     height: 48px;
     width: 100%;
-    background-color: #FFEE58;
-    border: 1px solid #FFEE58;
+    background-color: #789cea;
+    border: 1px solid #789cea;
 }
 
 #map {
@@ -104,7 +93,7 @@ main {
     min-width: 128px;
     max-width: 384px;
     flex-grow: 1;
-    background-color: #FFEE58;
+    background-color:  #bec7ca;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -124,8 +113,9 @@ main {
     flex-direction: column;
     justify-content: flex-start;
     justify-items: center;
+    border: 2px solid #ff00ea;
     border-radius: 16px;
-    background-color: #63aef0;
+    background-color: #789cea;
 }
 
 .card__time {
@@ -158,9 +148,9 @@ main {
 
 
 footer {
-    background-color: #005cb2;
+    margin-top: 8px;
+    background-color: #5427b5;
     min-height: 32px;
     max-height: 48px;
     flex-grow: 1;
-    margin: 8px;
 }
