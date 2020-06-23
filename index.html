@@ -3,6 +3,7 @@
     <title>Weather Application</title>
     <script src="https://api-maps.yandex.ru/2.1/?apikey=d2617171-c139-4325-a4bd-b19df1ae61bb&lang=ru_RU" type="text/javascript"></script>
     <link rel="stylesheet" href="css/style.css">
+    <meta charset="utf-8">
 </head>
 <body>
     <header>
@@ -142,10 +143,30 @@
                 route = new ymaps.route([
                     [startLatitude.value, startLongtitude.value],
                     [endLatitude.value, endLongtitude.value],    
-                ]).then(function(route) {
+                ], 
+                { 
+                    routingMode: "pedestrian",
+                    mapStateAutoApply: true,
+                    //multiRoute: true
+                }).then(function(route) {
                     myRoute && myMap.geoObjects.remove(myRoute);
                     myMap.geoObjects.add(myRoute = route);
                 })
+
+                var moveList = 'Трогаемся\n',
+                way,
+                segments;
+                
+                for (var i = 0; i < myRoute.getPaths().getLength(); i++) {
+                    way = myRoute.getPaths().get(i);
+                    segments = way.getSegments();
+                    for (var j = 0; j < segments.length; j++) {
+                        var street = segments[j].getStreet();
+                        moveList += ('Едем ' + segments[j].getHumanAction() + (street ? ' на ' + street : '') + ', проезжаем ' + segments[j].getLength() + ' м.,');
+                    }
+                }
+                moveList += 'Останавливаемся.';
+                console.log(moveList);
 
             });
         
