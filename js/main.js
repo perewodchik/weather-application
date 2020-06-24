@@ -135,7 +135,8 @@ window.onload = function()
         });
     }
         
-    /*Обработчик события для кнопки "проложить маршрут" */
+    
+    /*Обработчик события для кнопки "проложить маршрут"*/
     submit.addEventListener('click', function(e) {
         /* Создаем маршрут в виде промиса */
         route = new ymaps.route([
@@ -143,83 +144,60 @@ window.onload = function()
             [endLatitude.value, endLongtitude.value],    
         ], 
         { 
-            //routingMode: "pedestrian",
+            routingMode: "pedestrian",
             mapStateAutoApply: true,
-            //multiRoute: true
+            multiRoute: true
         })
         .then(function(route) {
             myRoute && myMap.geoObjects.remove(myRoute.getPaths());
-            route.getPaths().options.set({strokeColor: '0000ffff', strokeWidth: 5, opacity: 0.9});
-            myMap.geoObjects.add((myRoute = route).getPaths());
+            myRoute = route.getRoutes().get(0);
+            myRoute.getPaths().options.set({strokeColor: '0000ffff', strokeWidth: 5, opacity: 0.9});
+            myMap.geoObjects.add(myRoute);
         
-            /*Маршрут от начальной точки до конечной состоит из ПУТЕЙ
-                каждый путь состоит из СЕГМЕНТОВ
-                у сегмента мы берем точки и проверяем,
-                если расстояние с предыдущей маркой больше километра
-            */
-
             //Очищаем предыдущие метки
             for(var i = 0; i < myPlacemarks.length; i++)
                 myMap.geoObjects.remove(myPlacemarks[i]);
             myPlacemarks = [];
 
-           myPlacemark = new ymaps.Placemark(
-               [startLatitude.value, startLongtitude.value], {
-                iconContent: 'Начало Пути',
-                balloonContent: 'Балун',
-                hintContent: 'Стандартный значок метки'
-            }, 
-            {
-                preset: 'twirl#redIcon'
-            });
-            myPlacemarks.push(myPlacemark);
+
+            myPlacemarks.push(placemarkStart);
 
             /* Получаем ключевые точки */
             for (var i = 0; i < myRoute.getPaths().getLength(); i++) {
                 way = myRoute.getPaths().get(i);
-                var segments = way.getSegments();
 
-                console.log("Длина пути: " + way.getLength());
-                console.log("Время прохождения пути: " + way.getTime());
-
-
-                for (var j = 0; j < segments.length; j++) {
-                    //получаем массив координат точек
-                    placemarkCoords = segments[j].getCoordinates();
-                    //обрабатываем каждую точка из сегмента
-                    for(var k = 0; k < placemarkCoords.length; k++)
+                refPoints = way.properties.get('coordinates');
+                console.log(refPoints);
+                for(var j = 0; j < refPoints.length; j++)
+                {
+                    if(ymaps.coordSystem.geo.getDistance(
+                        myPlacemarks[myPlacemarks.length-1].geometry.getCoordinates(),
+                        refPoints[j]) >= 1000)
                     {
-                        if(myPlacemarks.length == 0 
-                        ||  ymaps.coordSystem.geo.getDistance(
-                                myPlacemarks[myPlacemarks.length - 1].geometry.getCoordinates(), 
-                                placemarkCoords[k]) >= 1000)
-                        {
-                            //создаем плейсмарку
-                            myPlacemark = new ymaps.Placemark(placemarkCoords[k], {
-                                hintContent: segments[j].getStreet(),
-                                balloonContent: "<p>22 C</p><p>5 м/c</p>",
-                                iconContent: ''
-                            }, {
-                                iconLayout: 'default#imageWithContent',
-                                iconImageHref: 'img/placemark_sun.png',
-                                iconImageSize: [48, 48],
-                                iconImageOffset: [-16, -48],
-                                iconContentOffset: [15, 10],
-                                iconContentLayout: MyIconContentLayout
-                            });
+                        myPlacemark = new ymaps.Placemark(refPoints[j], {
+                            hintContent: "huy",
+                            balloonContent: "<p>22 C</p><p>5 м/c</p>",
+                            iconContent: ''
+                        }, {
+                            iconLayout: 'default#imageWithContent',
+                            iconImageHref: 'img/placemark_sun.png',
+                            iconImageSize: [48, 48],
+                            iconImageOffset: [-16, -48],
+                            iconContentOffset: [15, 10],
+                            iconContentLayout: MyIconContentLayout
+                        });
 
-                            //добавляем точку в массив
-                            myPlacemarks.push(myPlacemark);
-                            
-                        }
+                        //добавляем точку в массив
+                        myPlacemarks.push(myPlacemark);
                     }
                 }
             }
             //выводим наши плейсмарки на карту
-             for(var i = 1; i < myPlacemarks.length; i++)
+             for(var i = 0; i < myPlacemarks.length; i++)
                  myMap.geoObjects.add(myPlacemarks[i]);
         }); 
     });
+
 
 
 }
