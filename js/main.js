@@ -10,6 +10,8 @@ window.onload = function()
         myRoute = undefined,
         myPlacemarks = [],
         way = undefined;
+        placemarkStart = undefined;
+        placemarkEnd = undefined;
     
     ymaps.ready(init); 
     
@@ -23,7 +25,47 @@ window.onload = function()
         myMap.controls.add(
             new ymaps.control.ZoomControl()  // Добавление элемента управления картой
         );
-            
+
+        MyIconContentLayout = ymaps.templateLayoutFactory.createClass(
+            '<div style="color: #FFFFFF; font-weight: bold;">$[properties.iconContent]</div>'
+        );
+
+        if( [startLatitude.value, startLongtitude.value] != ["0","0"])
+        {
+            placemarkStart && myMap.geoObjects.remove(placemarkStart);
+            placemarkStart = new ymaps.Placemark([startLatitude.value, startLongtitude.value], {
+                hintContent: 'Стартовая позиция',
+                balloonContent: Number(startLatitude.value).toPrecision(6).toString() + ", " +  Number(startLongtitude.value).toPrecision(6).toString(),
+                iconContent: 'S'
+            }, {
+                iconLayout: 'default#imageWithContent',
+                iconImageHref: 'img/placemark_start.png',
+                iconImageSize: [48, 48],
+                iconImageOffset: [-16, -48],
+                iconContentOffset: [15, 10],
+                iconContentLayout: MyIconContentLayout
+            });
+            myMap.geoObjects.add(placemarkStart);
+        }
+        if( [endLatitude.value, endLongtitude.value] != ["0","0"])
+        {
+            placemarkEnd && myMap.geoObjects.remove(placemarkEnd);
+            placemarkEnd = new ymaps.Placemark([endLatitude.value, endLongtitude.value], {
+                hintContent: 'Конечная позиция',
+                balloonContent: Number(endLatitude.value).toPrecision(6).toString() + ", " +  Number(endLongtitude.value).toPrecision(6).toString(),
+                iconContent: 'F'
+            }, {
+                iconLayout: 'default#imageWithContent',
+                iconImageHref: 'img/placemark_end.png',
+                iconImageSize: [48, 48],
+                iconImageOffset: [-16, -48],
+                iconContentOffset: [15, 10],
+                iconContentLayout: MyIconContentLayout
+            });
+            myMap.geoObjects.add(placemarkEnd);
+        }
+        
+        /*Обработка клика для выбора стартовой и конечной позиции*/
         myMap.events.add('click', function (e) {
             if (!myMap.balloon.isOpen()) {
                 coords = e.get('coords');
@@ -31,15 +73,11 @@ window.onload = function()
                 myMap.balloon.open(coords, {
                     contentHeader:'Выберите позицию',
                     contentBody:
-                        '<p id="chooseStart">Стартовая позиция</p>'  +
-                        '<p id="chooseEnd">Конечная позиция</p>' + [
-                        coords[0].toPrecision(6),
-                        coords[1].toPrecision(6)
-                        ].join(', ') + '</p>',
+                        '<div id="chooseStart">Стартовая позиция</div>'  +
+                        '<div id="chooseEnd">Конечная позиция</div>',
                     contentFooter:'<sup>Щелкните по позиции</sup>'
-                });
-    
-                setTimeout(function(){
+                }).then(function(balloon){
+
                     chooseStart = document.getElementById("chooseStart");
                     chooseEnd = document.getElementById("chooseEnd");
     
@@ -47,14 +85,49 @@ window.onload = function()
                         startLatitude.value = coords[0];
                         startLongtitude.value = coords[1];
                         myMap.balloon.close();
+
+                        placemarkStart && myMap.geoObjects.remove(placemarkStart);
+                        placemarkStart = new ymaps.Placemark([startLatitude.value, startLongtitude.value], {
+                            hintContent: 'Стартовая позиция',
+                            balloonContent: Number(startLatitude.value).toPrecision(3).toString() + ", " +  Number(startLongtitude.value).toPrecision(3).toString(),
+                            iconContent: 'S'
+                        }, {
+                            iconLayout: 'default#imageWithContent',
+                            iconImageHref: 'img/placemark_start.png',
+                            iconImageSize: [48, 48],
+                            iconImageOffset: [-16, -48],
+                            iconContentOffset: [15, 10],
+                            iconContentLayout: MyIconContentLayout
+                        });
+                        myMap.geoObjects.add(placemarkStart);
+
+
                     }, false);
     
                     chooseEnd.addEventListener('click', function(){ 
                         endLatitude.value = coords[0];
                         endLongtitude.value = coords[1];
                         myMap.balloon.close();
+
+                        placemarkEnd && myMap.geoObjects.remove(placemarkEnd);
+                        placemarkEnd = new ymaps.Placemark([endLatitude.value, endLongtitude.value], {
+                            hintContent: 'Конечная позиция',
+                            balloonContent: Number(endLatitude.value).toPrecision(3).toString() + ", " +  Number(endLongtitude.value).toPrecision(3).toString(),
+                            iconContent: 'F'
+                        }, {
+                            iconLayout: 'default#imageWithContent',
+                            iconImageHref: 'img/placemark_end.png',
+                            iconImageSize: [48, 48],
+                            iconImageOffset: [-16, -48],
+                            iconContentOffset: [15, 10],
+                            iconContentLayout: MyIconContentLayout
+                        });
+                        myMap.geoObjects.add(placemarkEnd);
+
+
+
                     }, false);
-                }, 200);
+                })
             }
             else {
                 myMap.balloon.close();
@@ -75,8 +148,9 @@ window.onload = function()
             //multiRoute: true
         })
         .then(function(route) {
-            myRoute && myMap.geoObjects.remove(myRoute);
-            myMap.geoObjects.add(myRoute = route);
+            myRoute && myMap.geoObjects.remove(myRoute.getPaths());
+            route.getPaths().options.set({strokeColor: '0000ffff', strokeWidth: 5, opacity: 0.9});
+            myMap.geoObjects.add((myRoute = route).getPaths());
         
             /*Маршрут от начальной точки до конечной состоит из ПУТЕЙ
                 каждый путь состоит из СЕГМЕНТОВ
@@ -91,15 +165,11 @@ window.onload = function()
 
            myPlacemark = new ymaps.Placemark(
                [startLatitude.value, startLongtitude.value], {
-                // Свойства.
-                // Содержимое иконки, балуна и хинта.
                 iconContent: 'Начало Пути',
                 balloonContent: 'Балун',
                 hintContent: 'Стандартный значок метки'
             }, 
             {
-                // Опции.
-                // Стандартная фиолетовая иконка.
                 preset: 'twirl#redIcon'
             });
             myPlacemarks.push(myPlacemark);
@@ -126,16 +196,16 @@ window.onload = function()
                         {
                             //создаем плейсмарку
                             myPlacemark = new ymaps.Placemark(placemarkCoords[k], {
-                                // Свойства.
-                                // Содержимое иконки, балуна и хинта.
-                                iconContent: '1',
-                                balloonContent: 'Балун',
-                                hintContent: 'Стандартный значок метки'
-                            }, 
-                            {
-                                // Опции.
-                                // Стандартная фиолетовая иконка.
-                                preset: 'twirl#violetIcon'
+                                hintContent: segments[j].getStreet(),
+                                balloonContent: "<p>22 C</p><p>5 м/c</p>",
+                                iconContent: ''
+                            }, {
+                                iconLayout: 'default#imageWithContent',
+                                iconImageHref: 'img/placemark_sun.png',
+                                iconImageSize: [48, 48],
+                                iconImageOffset: [-16, -48],
+                                iconContentOffset: [15, 10],
+                                iconContentLayout: MyIconContentLayout
                             });
 
                             //добавляем точку в массив
@@ -146,8 +216,10 @@ window.onload = function()
                 }
             }
             //выводим наши плейсмарки на карту
-            for(var i = 0; i < myPlacemarks.length; i++)
-                myMap.geoObjects.add(myPlacemarks[i]);
+             for(var i = 1; i < myPlacemarks.length; i++)
+                 myMap.geoObjects.add(myPlacemarks[i]);
         }); 
     });
+
+
 }
