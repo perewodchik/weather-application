@@ -13,9 +13,7 @@
     <main>
         
         <div id="weather">
-            <h2>Здесь могла быть</h2>
-            <h2>ваша реклама</h2>
-            <!-- <div id="weather__description">Состояние погоды:</div>
+            <div id="weather__description">Состояние погоды:</div>
 
             <div class="weather__card">
                 <div class="card__time">8:00</div>
@@ -30,8 +28,8 @@
                         <div class="card__wind">
                             Ветер: <span class="span__wind">2 м/c</span>
                         </div>
-                        <div class="card__feeling">
-                            <span class="span__feeling">Ясно</span>
+                        <div class="card__condition">
+                            Ясно
                         </div>
                     </div>
                 </div>
@@ -55,7 +53,7 @@
                         </div>
                     </div>
                 </div>
-            </div> -->
+            </div>
            
         </div>
 
@@ -65,20 +63,20 @@
             <form id="sidebar__form">
                 <fieldset class ="fieldset-text">
                     <legend>Стартовая позиция</legend>
-                    <label class="label-text" for="start__latitude"><span>Широта:  </span> 
+                    <label class="label-text" for="start__latitude"><span class="label__span">Широта:  </span> 
                         <input disabled id="start__latitude" name="start__latitude" value="0">
                     </label>
-                    <label class="label-text" for="start__longtitude"><span>Долгота:  </span> 
+                    <label class="label-text" for="start__longtitude"><span class="label__span">Долгота:  </span> 
                         <input disabled id="start__longtitude" name="start__longtitude" value="0">
                     </label>
                 </fieldset>
 
                 <fieldset class ="fieldset-text">
                     <legend>Конечная позиция</legend>
-                    <label class="label-text" for="end__latitude"><span>Широта:  </span> 
+                    <label class="label-text" for="end__latitude"><span class="label__span">Широта:  </span> 
                         <input disabled id="end__latitude" name="end__latitude" value="0">
                     </label>
-                    <label class="label-text" for="end__longtitude"><span>Долгота:  </span> 
+                    <label class="label-text" for="end__longtitude"><span class="label__span">Долгота:  </span> 
                         <input disabled id="end__longtitude" name="end__longtitude" value="0">
                     </label>
                 </fieldset>
@@ -90,6 +88,14 @@
                     <br>
                     <input name="travel_type" type="radio" id="radioChoice2" value="bicycle" checked>
                     <label class="label-radio" for="radioChoice2">Велосипед</label>
+                </fieldset>
+
+                <fieldset class ="fieldset-radio">
+                    <legend>Скорость</legend>
+                    <label class="label-text" for="input__speed">
+                        <input type="range" id="input__speed" name="speed" min="0" max="30" value="6">
+                        <span id="span__speed">6</span>км/ч
+                    </label>
                 </fieldset>
 
                 <div id="form__spacer"></div>

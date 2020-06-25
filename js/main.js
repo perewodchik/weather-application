@@ -2,15 +2,18 @@ var startLatitude   = document.getElementById("start__latitude"),
     startLongtitude = document.getElementById("start__longtitude"),
     endLatitude     = document.getElementById("end__latitude"),
     endLongtitude   = document.getElementById("end__longtitude"),
-    radioButtons    = document.getElementsByName("travel_type");
+    radioButtons    = document.getElementsByName("travel_type"),
+    speedInput      = document.getElementById("input__speed");
     submit          = document.getElementById("form__submit"),
-    way             = undefined;
-    myMap           = undefined,
+    weatherBar      = document.getElementById("weather");
+    way             = undefined,
     coords          = [0,0],
+    myMap           = undefined,
     myRoute         = undefined,
     myPlacemarks    = [],
-    placemarkStart  = undefined;
-    placemarkEnd    = undefined;
+    windDirections  = [],
+    placemarkStart  = undefined,
+    placemarkEnd    = undefined,
     travel_type     = undefined;
 
 ymaps.ready(init); 
@@ -30,13 +33,13 @@ function init() {
     if([startLatitude.value, startLongtitude.value] != ["0","0"])
     {
         placemarkStart && myMap.geoObjects.remove(placemarkStart);
-        placemarkStart = createPlacemark([startLatitude.value, startLongtitude.value], "img/placemark_start.png");
+        placemarkStart = createPlacemark([startLatitude.value, startLongtitude.value], {image: "img/placemark_start.png"});
         myMap.geoObjects.add(placemarkStart);
     }
     if( [endLatitude.value, endLongtitude.value] != ["0","0"])
     {
         placemarkEnd && myMap.geoObjects.remove(placemarkEnd);
-        placemarkEnd = createPlacemark([endLatitude.value, endLongtitude.value], "img/placemark_end.png");
+        placemarkEnd = createPlacemark([endLatitude.value, endLongtitude.value], {image: "img/placemark_end.png"});
         myMap.geoObjects.add(placemarkEnd);
     }
     
@@ -64,7 +67,7 @@ function init() {
                     myMap.balloon.close();
 
                     placemarkStart && myMap.geoObjects.remove(placemarkStart);
-                    placemarkStart = createPlacemark([startLatitude.value, startLongtitude.value], "img/placemark_start.png");
+                    placemarkStart = createPlacemark([startLatitude.value, startLongtitude.value], {image:"img/placemark_start.png"});
                     myMap.geoObjects.add(placemarkStart);
                 }, false);
 
@@ -74,7 +77,7 @@ function init() {
                     myMap.balloon.close();
 
                     placemarkEnd && myMap.geoObjects.remove(placemarkEnd);
-                    placemarkEnd = createPlacemark([endLatitude.value, endLongtitude.value], "img/placemark_end.png");
+                    placemarkEnd = createPlacemark([endLatitude.value, endLongtitude.value], {image: "img/placemark_end.png"});
                     myMap.geoObjects.add(placemarkEnd);
                 }, false);
             })
@@ -121,6 +124,9 @@ submit.addEventListener('click', function(e) {
         for(var i = 0; i < myPlacemarks.length; i++)
             myMap.geoObjects.remove(myPlacemarks[i]);
         myPlacemarks = [];
+        for(var i = 0; i < windDirections.length; i++)
+            myMap.geoObjects.remove(windDirections[i]);
+        windDirections = [];
         myPlacemarks.push(placemarkStart);
 
         /* Получаем ключевые точки */
@@ -133,7 +139,7 @@ submit.addEventListener('click', function(e) {
                 if(ymaps.coordSystem.geo.getDistance(lastPoint, refPoints[j]) >= 1000)
                 {
                     lastPoint = refPoints[j];
-                    myPlacemark = createPlacemark(refPoints[j], "img/rain.png");
+                    myPlacemark = createPlacemark(refPoints[j], {image: "img/loading.gif"});
                     myPlacemarks.push(myPlacemark);
                     updatePlacemarkWithWeather(refPoints[j], 12, myPlacemark);
                     console.log("pushed placemark");
@@ -146,6 +152,10 @@ submit.addEventListener('click', function(e) {
     }); 
 });
 
+speedInput.addEventListener("input", function(e){
+    document.getElementById("span__speed").textContent = speedInput.value;
+})
+
 function updatePlacemarkWithWeather(coords, time, placemark) {
     const proxyurl = "https://cors-anywhere.herokuapp.com/";
     const url = "https://api.weather.yandex.ru/v1/forecast?lat=" + coords[0] + "&lon=" + coords[1] + "&extra=true";
@@ -156,28 +166,80 @@ function updatePlacemarkWithWeather(coords, time, placemark) {
     }).then(response => response.json()).then(contents => contents).catch(() => console.log("ad"));
 
     ans.then(function(contents){
-        var temp = contents.forecasts[0].hours[time].temp,
-            icon = contents.forecasts[0].hours[time].icon,
-            wind_speed = contents.forecasts[0].hours[time].wind_speed,
-            wind_dir = contents.forecasts[0].hours[time].wind_dir,
-            condition = contents.forecasts[0].hours[time].condition,
-            icon = contents.forecasts[0].hours[time].icon;
+        weather_info = {
+            temp: contents.forecasts[0].hours[time].temp,
+            icon: contents.forecasts[0].hours[time].icon,
+            wind_speed: contents.forecasts[0].hours[time].wind_speed,
+            wind_dir: contents.forecasts[0].hours[time].wind_dir,
+            condition: contents.forecasts[0].hours[time].condition
+        };
 
-        placemark.properties.set("hintContent", temp);
-        placemark.options.set("iconImageHref", 'https://yastatic.net/weather/i/icons/blueye/color/svg/' + icon + '.svg');
-        console.log("updated");
+        placemark.properties.set("hintContent", weather_info.temp);
+        placemark.options.set("iconImageHref", 'https://yastatic.net/weather/i/icons/blueye/color/svg/' + weather_info.icon + '.svg');
+        windPlacemark = createPlacemark(coords, {image: "img/" + weather_info.wind_dir + ".png", iconImageOffset: [-16,0]});
+        windDirections.push(windPlacemark);
+        myMap.geoObjects.add(windPlacemark);
+
     });
 }
 
-function createPlacemark(coords, img_link)
+function createPlacemark(coords, params = {})
 {
     var placemark = new ymaps.Placemark(coords, {
         //...
+        
     }, {
         iconLayout: 'default#image',
-        iconImageHref: img_link,
-        iconImageSize: [48, 48],
-        iconImageOffset: [-16, -48],
+        iconImageHref:   params.image           || "img/logo.ong",
+        iconImageSize:   params.iconImageSize   || [48, 48],
+        iconImageOffset: params.iconImageOffset || [-16, -48],
+        iconOffset:      params.iconOffset      || [0,0],
+        offset:          params.offset          || [0,0]
     });
+    //placemark.options.set("iconOffset", params.iconOf);
     return placemark;
+}
+
+function createCard(coords, params){
+
+    weather__card = document.createElement("div");
+    weather__card.className = "weather__card";
+
+    card__time = document.createElement("div");
+    card__time.className = "card__time";
+    card__time.textContent = params.time;
+    weather__card.appendChild(card__time);
+
+    card__descriptionWrapper = document.createElement("div");
+    card__descriptionWrapper.className = "card__descriptionWrapper";
+    weather__card.appendChild(card__descriptionWrapper);
+
+    card__image = document.createElement("div");
+    card__image.className = "card__image";
+    card__descriptionWrapper.appendChild(card__image);
+
+    img = document.createElement("img");
+    img.src = params.image;
+    card__image.appendChild(img);
+    
+    card__infoWrapper = document.createElement("div");
+    card__infoWrapper.className = "card__infoWrapper";
+    card__descriptionWrapper.appendChild(card__infoWrapper);
+
+    card__temperature = document.createElement("div");
+    card__temperature.className = "card__temperature";
+    card__temperature.textContent = "Температура: " + params.temp + "°C";
+    card__infoWrapper.appendChild(card__temperature);
+
+    card__wind = document.createElement("div");
+    card__wind.className = "card__wind";
+    card__wind.textContent = "Ветер: " + params.wind_speed + " " + params.wind_dir;
+    card__infoWrapper.appendChild(card__wind);
+
+    card__condition = document.createElement("div");
+    card__condition.className = "card__condition";
+    card__condition.textContent = params.condition;
+    card__infoWrapper.appendChild(card__condition);
+
+    return weather__card;
 }

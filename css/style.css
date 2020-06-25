@@ -68,7 +68,7 @@ main {
     margin-bottom: 8px;
 }
 
-.label-text > span {
+.label__span {
     width: 96px;
 }
 
