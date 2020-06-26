@@ -1,20 +1,20 @@
-var startLatitude   = document.getElementById("start__latitude"),
-    startLongtitude = document.getElementById("start__longtitude"),
-    endLatitude     = document.getElementById("end__latitude"),
-    endLongtitude   = document.getElementById("end__longtitude"),
-    radioButtons    = document.getElementsByName("travel_type"),
-    speedInput      = document.getElementById("input__speed");
-    submit          = document.getElementById("form__submit"),
-    weatherBar      = document.getElementById("weather");
-    way             = undefined,
-    coords          = [0,0],
-    myMap           = undefined,
-    myRoute         = undefined,
-    myPlacemarks    = [],
-    windDirections  = [],
-    placemarkStart  = undefined,
-    placemarkEnd    = undefined,
-    travel_type     = undefined;
+var startLatitude       = document.getElementById("start__latitude"),
+    startLongtitude     = document.getElementById("start__longtitude"),
+    endLatitude         = document.getElementById("end__latitude"),
+    endLongtitude       = document.getElementById("end__longtitude"),
+    radioButtons        = document.getElementsByName("travel_type"),
+    speedInput          = document.getElementById("input__speed");
+    submit              = document.getElementById("form__submit"),
+    clearRouteButton    = document.getElementById("form__clearRoute");
+    weatherBar          = document.getElementById("weather");
+    way                 = undefined,
+    coords              = [0,0],
+    myMap               = undefined,
+    myRoute             = undefined,
+    weatherPlacemarks   = [],
+    windDirections      = [],
+    travel_type         = undefined;
+    waypointMarks       = [];
 
 ymaps.ready(init); 
 
@@ -28,20 +28,6 @@ function init() {
     myMap.controls.add(
         new ymaps.control.ZoomControl()  // Добавление элемента управления картой
     );
-
-    //Выставляем флажки первичном заходе на сайт
-    if([startLatitude.value, startLongtitude.value] != ["0","0"])
-    {
-        placemarkStart && myMap.geoObjects.remove(placemarkStart);
-        placemarkStart = createPlacemark([startLatitude.value, startLongtitude.value], {image: "img/placemark_start.png"});
-        myMap.geoObjects.add(placemarkStart);
-    }
-    if( [endLatitude.value, endLongtitude.value] != ["0","0"])
-    {
-        placemarkEnd && myMap.geoObjects.remove(placemarkEnd);
-        placemarkEnd = createPlacemark([endLatitude.value, endLongtitude.value], {image: "img/placemark_end.png"});
-        myMap.geoObjects.add(placemarkEnd);
-    }
     
     /*Обработка клика для выбора стартовой и конечной позиции*/
     myMap.events.add('click', function (e) {
@@ -51,35 +37,48 @@ function init() {
             /*Открываем балун с выбором позиции*/
             myMap.balloon.open(coords, {
                 contentHeader:'Выберите позицию',
-                contentBody:
-                    '<div id="chooseStart">Стартовая позиция</div>'  +
-                    '<div id="chooseEnd">Конечная позиция</div>',
+                contentBody: '<div id="choosePoint">Добавить точку</div>',
                 contentFooter:'<sup>Щелкните по позиции</sup>'
             }).then(function(balloon){
 
                 /*Обрабатываем нажатия на стартовую/конечную позицию*/
-                chooseStart = document.getElementById("chooseStart");
-                chooseEnd = document.getElementById("chooseEnd");
+                choostPoint = document.getElementById("choosePoint");
 
-                chooseStart.addEventListener('click', function(){ 
-                    startLatitude.value = coords[0];
-                    startLongtitude.value = coords[1];
+                choosePoint.addEventListener('click', function(){ 
                     myMap.balloon.close();
 
-                    placemarkStart && myMap.geoObjects.remove(placemarkStart);
-                    placemarkStart = createPlacemark([startLatitude.value, startLongtitude.value], {image:"img/placemark_start.png"});
-                    myMap.geoObjects.add(placemarkStart);
+                    placemark = createPlacemark(coords, {image:"img/waypoint.png"});
+
+                    if(waypointMarks.length == 0)
+                    {
+                        startLatitude.value = coords[0];
+                        startLongtitude.value = coords[1];
+                        placemark.options.set("iconImageHref", "img/start.png");
+                    }
+                    if(waypointMarks.length > 0)
+                    {
+                        if(waypointMarks.length > 1)
+                            waypointMarks[waypointMarks.length-1].options.set("iconImageHref", "img/waypoint" + (waypointMarks.length-1).toString() + ".png");
+                        placemark.options.set("iconImageHref", "img/finish.png");
+                        endLatitude.value = coords[0];
+                        endLongtitude.value = coords[1];
+                    }
+                
+                    
+                    
+                    if(waypointMarks.length <= 4)
+                    {
+                        myMap.geoObjects.add(placemark);
+                        waypointMarks.push(placemark);
+                    }
+                    else
+                    {
+                        myMap.geoObjects.remove(waypointMarks[waypointMarks.length-1]);
+                        waypointMarks[waypointMarks.length-1] = placemark;
+                        myMap.geoObjects.add(placemark);
+                    }
                 }, false);
 
-                chooseEnd.addEventListener('click', function(){ 
-                    endLatitude.value = coords[0];
-                    endLongtitude.value = coords[1];
-                    myMap.balloon.close();
-
-                    placemarkEnd && myMap.geoObjects.remove(placemarkEnd);
-                    placemarkEnd = createPlacemark([endLatitude.value, endLongtitude.value], {image: "img/placemark_end.png"});
-                    myMap.geoObjects.add(placemarkEnd);
-                }, false);
             })
         }
         else {
@@ -87,9 +86,14 @@ function init() {
         }
     });
 }
+
+clearRouteButton.addEventListener('click', clearRoute)
     
 /*Обработчик события для кнопки "проложить маршрут"*/
 submit.addEventListener('click', function(e) {
+    if(waypointMarks.length  == 1)
+        return;
+
     for(var i = 0; i < radioButtons.length; i++){
         if(radioButtons[i].checked){
             travel_type = radioButtons[i].value;
@@ -98,57 +102,77 @@ submit.addEventListener('click', function(e) {
     }
 
     /* Создаем маршрут в виде промиса */
-    route = new ymaps.route([
-        [startLatitude.value, startLongtitude.value],
-        //....
-        [endLatitude.value, endLongtitude.value],    
-    ], 
+
+    route = new ymaps.route(getCoordinatesFromPlacemarks(waypointMarks),
     { 
         routingMode: travel_type,
         mapStateAutoApply: true,
         multiRoute: true
     }).then(function(route) {
         myRoute && myMap.geoObjects.remove(myRoute.getPaths());
+        myRoute = undefined;
         route.getWayPoints().options.set("visible", false);
         myRoute = route.getRoutes().get(0);
+
+        //Очищаем предыдущие метки
+        for(var i = 0; i < weatherPlacemarks.length; i++)
+            myMap.geoObjects.remove(weatherPlacemarks[i]);
+        weatherPlacemarks = [];
+        for(var i = 0; i < windDirections.length; i++)
+            myMap.geoObjects.remove(windDirections[i]);
+        windDirections = [];
+        
+        if(myRoute == undefined){
+            clearRoute({});
+            alert("Не удалось проложить маршрут. Попробуйте изменить опорные точки и/или тип маршрута");
+            return;
+        }
 
         myRoute.getPaths().options.set({strokeColor: '0000ffff', strokeWidth: 5, opacity: 0.9});
 
         /*Удаляем бесполезную иконку*/
         myRoute.getPaths().options.set("iconImageHref", "img/placemark_end.png");
         myRoute.getPaths().options.set("iconLayout", "default#imageWithContent");
-        myRoute.getPaths().options.set("iconImageSize", [0,0])
+        myRoute.getPaths().options.set("iconImageSize", [0,0]);
 
         myMap.geoObjects.add(myRoute.getPaths());
-        //Очищаем предыдущие метки
-        for(var i = 0; i < myPlacemarks.length; i++)
-            myMap.geoObjects.remove(myPlacemarks[i]);
-        myPlacemarks = [];
-        for(var i = 0; i < windDirections.length; i++)
-            myMap.geoObjects.remove(windDirections[i]);
-        windDirections = [];
-        myPlacemarks.push(placemarkStart);
 
-        /* Получаем ключевые точки */
-        lastPoint = myPlacemarks[0].geometry.getCoordinates();
-        for (var i = 0; i < myRoute.getPaths().getLength(); i++) {
-            way = myRoute.getPaths().get(i);
-            refPoints = way.properties.get('coordinates');
-            for(var j = 0; j < refPoints.length; j++)
-            {
-                if(ymaps.coordSystem.geo.getDistance(lastPoint, refPoints[j]) >= 1000)
+        if(waypointMarks.length == 2)
+        {
+            var lastPoint = waypointMarks[0].geometry.getCoordinates();
+            var minDistance = getMinDistanceBetweenPoints(myRoute.properties.get("distance").value);
+            var counter = 1;
+            for (var i = 0; i < myRoute.getPaths().getLength(); i++) {
+                var way = myRoute.getPaths().get(i);
+                var refPoints = way.properties.get('coordinates');
+                for(var j = 0; j < refPoints.length; j++)
                 {
-                    lastPoint = refPoints[j];
-                    myPlacemark = createPlacemark(refPoints[j], {image: "img/loading.gif"});
-                    myPlacemarks.push(myPlacemark);
-                    updatePlacemarkWithWeather(refPoints[j], 12, myPlacemark);
-                    console.log("pushed placemark");
+                    if(ymaps.coordSystem.geo.getDistance(lastPoint, refPoints[j]) >= minDistance)
+                    {
+                        console.log("добавляю вейпоинт");
+                        lastPoint = refPoints[j];
+                        waypointMark = createPlacemark(refPoints[j], {image:"img/waypoint" + counter.toString() + ".png"});
+                        
+                        myMap.geoObjects.add(waypointMark);
+                        waypointMarks.splice(counter, 0, waypointMark);
+                        counter++;
+                    }
                 }
             }
         }
+
+        for(var i = 0; i < waypointMarks.length; i++)
+        {
+            weatherPlacemark = createPlacemark(waypointMarks[i].geometry.getCoordinates(), {image: "img/loading.gif", iconImageOffset: [8,-24]});
+            weatherPlacemarks.push(weatherPlacemark);
+            updatePlacemarkWithWeather(waypointMarks[i].geometry.getCoordinates(), 21, weatherPlacemark); //fix time
+        }
+
+        
         //выводим наши плейсмарки на карту
-        for(var i = 0; i < myPlacemarks.length; i++)
-            myMap.geoObjects.add(myPlacemarks[i]);
+        for(var i = 0; i < weatherPlacemarks.length; i++)
+            myMap.geoObjects.add(weatherPlacemarks[i]);
+            
     }); 
 });
 
@@ -163,7 +187,7 @@ function updatePlacemarkWithWeather(coords, time, placemark) {
         headers: {
             'X-Yandex-API-Key': '3ca8def8-6851-461a-a026-86bce3750c16'
         },
-    }).then(response => response.json()).then(contents => contents).catch(() => console.log("ad"));
+    }).then(response => response.json()).then(contents => contents).catch(() => console.log("Could not get weather"));
 
     ans.then(function(contents){
         weather_info = {
@@ -176,7 +200,7 @@ function updatePlacemarkWithWeather(coords, time, placemark) {
 
         placemark.properties.set("hintContent", weather_info.temp);
         placemark.options.set("iconImageHref", 'https://yastatic.net/weather/i/icons/blueye/color/svg/' + weather_info.icon + '.svg');
-        windPlacemark = createPlacemark(coords, {image: "img/" + weather_info.wind_dir + ".png", iconImageOffset: [-16,0]});
+        windPlacemark = createPlacemark(coords, {image: "img/" + weather_info.wind_dir + ".png", iconImageOffset: [8,-56]});
         windDirections.push(windPlacemark);
         myMap.geoObjects.add(windPlacemark);
 
@@ -192,7 +216,7 @@ function createPlacemark(coords, params = {})
         iconLayout: 'default#image',
         iconImageHref:   params.image           || "img/logo.ong",
         iconImageSize:   params.iconImageSize   || [48, 48],
-        iconImageOffset: params.iconImageOffset || [-16, -48],
+        iconImageOffset: params.iconImageOffset || [-24, -48],
         iconOffset:      params.iconOffset      || [0,0],
         offset:          params.offset          || [0,0]
     });
@@ -242,4 +266,48 @@ function createCard(coords, params){
     card__infoWrapper.appendChild(card__condition);
 
     return weather__card;
+}
+
+function getCoordinatesFromPlacemarks(placemarks)
+{
+    coordsList = [];
+    for(var i = 0; i < placemarks.length; i++)
+        coordsList.push(placemarks[i].geometry.getCoordinates());
+    
+    return coordsList;
+}
+
+function getMinDistanceBetweenPoints(distance)
+{
+    if(distance < 2000)
+        return distance * 2; 
+    else if(distance < 4000)
+        return distance / 2;
+    else if(distance < 8000)
+        return distance / 3;
+    else
+        return distance / 4;
+}
+
+
+function clearRoute(e) {
+    /*Очищаем поля*/
+    startLatitude.value = 0;
+    startLongtitude.value = 0;
+    endLatitude.value = 0;
+    endLongtitude.value = 0;
+    /*Удаляем плейсмарки*/
+    for(var i = 0; i < waypointMarks.length; i++)
+        myMap.geoObjects.remove(waypointMarks[i]);
+    waypointMarks = [];
+    /*Удаляем состояние погоды*/
+    for(var i = 0; i < weatherPlacemarks.length; i++)
+            myMap.geoObjects.remove(weatherPlacemarks[i]);
+        weatherPlacemarks = [];
+    /*Удаляем направления ветра*/
+    for(var i = 0; i < windDirections.length; i++)
+            myMap.geoObjects.remove(windDirections[i]);
+        windDirections = [];
+    /*Удаляем маршрут*/
+    myRoute && myMap.geoObjects.remove(myRoute.getPaths());
 }

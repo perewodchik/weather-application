@@ -8,12 +8,13 @@
 <body>
     <header>
         <img class="header__logo" src="img/logo.png">
-        <p>WEATHER MAP</p>
+        <p>WEATHERLY</p>
     </header>
     <main>
         
         <div id="weather">
             <div id="weather__description">Состояние погоды:</div>
+            <p>(закрыто на ремонт)</p>
 
             <div class="weather__card">
                 <div class="card__time">8:00</div>
@@ -88,6 +89,9 @@
                     <br>
                     <input name="travel_type" type="radio" id="radioChoice2" value="bicycle" checked>
                     <label class="label-radio" for="radioChoice2">Велосипед</label>
+                    <br>
+                    <input name="travel_type" type="radio" id="radioChoice3" value="auto">
+                    <label class="label-radio" for="radioChoice3">Автомобиль</label>
                 </fieldset>
 
                 <fieldset class ="fieldset-radio">
@@ -98,9 +102,10 @@
                     </label>
                 </fieldset>
 
+                <input type="button" id="form__clearRoute"  value="очистить маршрут"></submit>
                 <div id="form__spacer"></div>
 
-                <input id="form__submit"  value="Проложить маршрут"></submit>
+                <input  type="button" id="form__submit"  value="Проложить маршрут"></submit>
             </form>
         </div>
     </main>
