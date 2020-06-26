@@ -7,6 +7,7 @@ var startLatitude       = document.getElementById("start__latitude"),
     submit              = document.getElementById("form__submit"),
     clearRouteButton    = document.getElementById("form__clearRoute");
     weatherBar          = document.getElementById("weather");
+    speed               = document.getElementById("input__speed");
     way                 = undefined,
     coords              = [0,0],
     myMap               = undefined,
@@ -15,6 +16,7 @@ var startLatitude       = document.getElementById("start__latitude"),
     windDirections      = [],
     travel_type         = undefined;
     waypointMarks       = [];
+    currentDate         = new Date(); 
 
 ymaps.ready(init); 
 
@@ -128,6 +130,7 @@ submit.addEventListener('click', function(e) {
             return;
         }
 
+
         myRoute.getPaths().options.set({strokeColor: '0000ffff', strokeWidth: 5, opacity: 0.9});
 
         /*Удаляем бесполезную иконку*/
@@ -137,6 +140,7 @@ submit.addEventListener('click', function(e) {
 
         myMap.geoObjects.add(myRoute.getPaths());
 
+        
         if(waypointMarks.length == 2)
         {
             var lastPoint = waypointMarks[0].geometry.getCoordinates();
@@ -147,9 +151,9 @@ submit.addEventListener('click', function(e) {
                 var refPoints = way.properties.get('coordinates');
                 for(var j = 0; j < refPoints.length; j++)
                 {
-                    if(ymaps.coordSystem.geo.getDistance(lastPoint, refPoints[j]) >= minDistance)
+                    var distanceBetweenPoints = ymaps.coordSystem.geo.getDistance(lastPoint, refPoints[j]);
+                    if(distanceBetweenPoints >= minDistance)
                     {
-                        console.log("добавляю вейпоинт");
                         lastPoint = refPoints[j];
                         waypointMark = createPlacemark(refPoints[j], {image:"img/waypoint" + counter.toString() + ".png"});
                         
@@ -161,11 +165,21 @@ submit.addEventListener('click', function(e) {
             }
         }
 
+        var dateAtWaypoint = new Date();
+        speedInMetersPerSecond = speed.value / 3.6;
         for(var i = 0; i < waypointMarks.length; i++)
         {
+            if(i != 0)
+            {
+                var distanceBetweenPoints = ymaps.coordSystem.geo.getDistance(
+                    waypointMarks[i-1].geometry.getCoordinates(), 
+                    waypointMarks[i].geometry.getCoordinates());
+                    dateAtWaypoint.setSeconds(dateAtWaypoint.getSeconds() + distanceBetweenPoints / speedInMetersPerSecond);
+            }
             weatherPlacemark = createPlacemark(waypointMarks[i].geometry.getCoordinates(), {image: "img/loading.gif", iconImageOffset: [8,-24]});
             weatherPlacemarks.push(weatherPlacemark);
-            updatePlacemarkWithWeather(waypointMarks[i].geometry.getCoordinates(), 21, weatherPlacemark); //fix time
+            updatePlacemarkWithWeather(waypointMarks[i].geometry.getCoordinates(), 
+                new Date(dateAtWaypoint.getTime()),  weatherPlacemark);
         }
 
         
@@ -180,7 +194,7 @@ speedInput.addEventListener("input", function(e){
     document.getElementById("span__speed").textContent = speedInput.value;
 })
 
-function updatePlacemarkWithWeather(coords, time, placemark) {
+function updatePlacemarkWithWeather(coords, date, placemark) {
     const proxyurl = "https://cors-anywhere.herokuapp.com/";
     const url = "https://api.weather.yandex.ru/v1/forecast?lat=" + coords[0] + "&lon=" + coords[1] + "&extra=true";
     let ans = fetch(proxyurl + url, {
@@ -190,13 +204,22 @@ function updatePlacemarkWithWeather(coords, time, placemark) {
     }).then(response => response.json()).then(contents => contents).catch(() => console.log("Could not get weather"));
 
     ans.then(function(contents){
+
+        daysLag = getDayInYear(date) - getDayInYear(currentDate);
+        
+        if(daysLag > 2)
+            daysLag = 2;
+        dateHours = (date.getMinutes() >= 30 ? date.getHours() + 1: date.getHours());
+        if(dateHours > 23)
+            dateHours = 23;
         weather_info = {
-            temp: contents.forecasts[0].hours[time].temp,
-            icon: contents.forecasts[0].hours[time].icon,
-            wind_speed: contents.forecasts[0].hours[time].wind_speed,
-            wind_dir: contents.forecasts[0].hours[time].wind_dir,
-            condition: contents.forecasts[0].hours[time].condition
+            temp: contents.forecasts[daysLag].hours[dateHours].temp,
+            icon: contents.forecasts[daysLag].hours[dateHours].icon,
+            wind_speed: contents.forecasts[daysLag].hours[dateHours].wind_speed,
+            wind_dir: contents.forecasts[daysLag].hours[dateHours].wind_dir,
+            condition: contents.forecasts[daysLag].hours[dateHours].condition
         };
+        console.log(weather_info);
 
         placemark.properties.set("hintContent", weather_info.temp);
         placemark.options.set("iconImageHref", 'https://yastatic.net/weather/i/icons/blueye/color/svg/' + weather_info.icon + '.svg');
@@ -218,7 +241,8 @@ function createPlacemark(coords, params = {})
         iconImageSize:   params.iconImageSize   || [48, 48],
         iconImageOffset: params.iconImageOffset || [-24, -48],
         iconOffset:      params.iconOffset      || [0,0],
-        offset:          params.offset          || [0,0]
+        offset:          params.offset          || [0,0],
+        content:         params.content         || "time"
     });
     //placemark.options.set("iconOffset", params.iconOf);
     return placemark;
@@ -310,4 +334,12 @@ function clearRoute(e) {
         windDirections = [];
     /*Удаляем маршрут*/
     myRoute && myMap.geoObjects.remove(myRoute.getPaths());
+}
+
+function getDayInYear(date){
+    var start = new Date(date.getFullYear(), 0, 0);
+    var diff = date - start;
+    var oneDay = 1000 * 60 * 60 * 24;
+    var day = Math.floor(diff / oneDay);
+    return day;
 }
