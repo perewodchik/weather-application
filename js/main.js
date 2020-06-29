@@ -18,7 +18,9 @@ var startLatitude       = document.getElementById("start__latitude"),
     waypointMarks       = [];
     currentDate         = new Date(); 
 
-ymaps.ready(init); 
+document.getElementById("span__speed").textContent = speedInput.value;
+ymaps.ready(init);
+ 
 
 function init() {
     /*  Инициализация карты  */
@@ -55,13 +57,13 @@ function init() {
                     {
                         startLatitude.value = coords[0];
                         startLongtitude.value = coords[1];
-                        placemark.options.set("iconImageHref", "img/start.png");
+                        placemark.options.set("iconImageHref", "img/waypoint0.png");
                     }
                     if(waypointMarks.length > 0)
                     {
                         if(waypointMarks.length > 1)
                             waypointMarks[waypointMarks.length-1].options.set("iconImageHref", "img/waypoint" + (waypointMarks.length-1).toString() + ".png");
-                        placemark.options.set("iconImageHref", "img/finish.png");
+                        placemark.options.set("iconImageHref", "img/waypoint4.png");
                         endLatitude.value = coords[0];
                         endLongtitude.value = coords[1];
                     }
@@ -90,6 +92,9 @@ function init() {
 }
 
 clearRouteButton.addEventListener('click', clearRoute)
+speedInput.addEventListener("input", function(e){
+    document.getElementById("span__speed").textContent = speedInput.value;
+})
     
 /*Обработчик события для кнопки "проложить маршрут"*/
 submit.addEventListener('click', function(e) {
@@ -123,6 +128,7 @@ submit.addEventListener('click', function(e) {
         for(var i = 0; i < windDirections.length; i++)
             myMap.geoObjects.remove(windDirections[i]);
         windDirections = [];
+        weatherBar.innerHTML = "";
         
         if(myRoute == undefined){
             clearRoute({});
@@ -164,6 +170,7 @@ submit.addEventListener('click', function(e) {
                 }
             }
         }
+        
 
         var dateAtWaypoint = new Date();
         speedInMetersPerSecond = speed.value / 3.6;
@@ -178,8 +185,17 @@ submit.addEventListener('click', function(e) {
             }
             weatherPlacemark = createPlacemark(waypointMarks[i].geometry.getCoordinates(), {image: "img/loading.gif", iconImageOffset: [8,-24]});
             weatherPlacemarks.push(weatherPlacemark);
-            updatePlacemarkWithWeather(waypointMarks[i].geometry.getCoordinates(), 
-                new Date(dateAtWaypoint.getTime()),  weatherPlacemark);
+            //(params.time / 10 > 0) ? params.time : "0" + params.time.toString()
+            weatherBar.appendChild(createCard({
+                id: i,
+                time: dateAtWaypoint.getHours().toString() + ":" + 
+                (dateAtWaypoint.getMinutes().toString().length == 1 ? "0" : "") +
+                dateAtWaypoint.getMinutes().toString(),
+                imageWaypoint: waypointMarks[i].options.get("iconImageHref")
+            }));
+
+            handleWeather(waypointMarks[i].geometry.getCoordinates(), 
+                new Date(dateAtWaypoint.getTime()),  weatherPlacemark, i);
         }
 
         
@@ -190,11 +206,9 @@ submit.addEventListener('click', function(e) {
     }); 
 });
 
-speedInput.addEventListener("input", function(e){
-    document.getElementById("span__speed").textContent = speedInput.value;
-})
 
-function updatePlacemarkWithWeather(coords, date, placemark) {
+
+function handleWeather(coords, date, placemark, number) {
     const proxyurl = "https://cors-anywhere.herokuapp.com/";
     const url = "https://api.weather.yandex.ru/v1/forecast?lat=" + coords[0] + "&lon=" + coords[1] + "&extra=true";
     let ans = fetch(proxyurl + url, {
@@ -213,19 +227,20 @@ function updatePlacemarkWithWeather(coords, date, placemark) {
         if(dateHours > 23)
             dateHours = 23;
         weather_info = {
-            temp: contents.forecasts[daysLag].hours[dateHours].temp,
-            icon: contents.forecasts[daysLag].hours[dateHours].icon,
+            temp:       contents.forecasts[daysLag].hours[dateHours].temp,
+            icon:       contents.forecasts[daysLag].hours[dateHours].icon,
             wind_speed: contents.forecasts[daysLag].hours[dateHours].wind_speed,
-            wind_dir: contents.forecasts[daysLag].hours[dateHours].wind_dir,
-            condition: contents.forecasts[daysLag].hours[dateHours].condition
+            wind_dir:   contents.forecasts[daysLag].hours[dateHours].wind_dir,
+            condition:  contents.forecasts[daysLag].hours[dateHours].condition
         };
-        console.log(weather_info);
 
         placemark.properties.set("hintContent", weather_info.temp);
-        placemark.options.set("iconImageHref", 'https://yastatic.net/weather/i/icons/blueye/color/svg/' + weather_info.icon + '.svg');
+        placemark.options.set("iconImageHref", "https://yastatic.net/weather/i/icons/blueye/color/svg/" + weather_info.icon + ".svg");
         windPlacemark = createPlacemark(coords, {image: "img/" + weather_info.wind_dir + ".png", iconImageOffset: [8,-56]});
         windDirections.push(windPlacemark);
         myMap.geoObjects.add(windPlacemark);
+
+        updateCard(number, weather_info);
 
     });
 }
@@ -246,50 +261,6 @@ function createPlacemark(coords, params = {})
     });
     //placemark.options.set("iconOffset", params.iconOf);
     return placemark;
-}
-
-function createCard(coords, params){
-
-    weather__card = document.createElement("div");
-    weather__card.className = "weather__card";
-
-    card__time = document.createElement("div");
-    card__time.className = "card__time";
-    card__time.textContent = params.time;
-    weather__card.appendChild(card__time);
-
-    card__descriptionWrapper = document.createElement("div");
-    card__descriptionWrapper.className = "card__descriptionWrapper";
-    weather__card.appendChild(card__descriptionWrapper);
-
-    card__image = document.createElement("div");
-    card__image.className = "card__image";
-    card__descriptionWrapper.appendChild(card__image);
-
-    img = document.createElement("img");
-    img.src = params.image;
-    card__image.appendChild(img);
-    
-    card__infoWrapper = document.createElement("div");
-    card__infoWrapper.className = "card__infoWrapper";
-    card__descriptionWrapper.appendChild(card__infoWrapper);
-
-    card__temperature = document.createElement("div");
-    card__temperature.className = "card__temperature";
-    card__temperature.textContent = "Температура: " + params.temp + "°C";
-    card__infoWrapper.appendChild(card__temperature);
-
-    card__wind = document.createElement("div");
-    card__wind.className = "card__wind";
-    card__wind.textContent = "Ветер: " + params.wind_speed + " " + params.wind_dir;
-    card__infoWrapper.appendChild(card__wind);
-
-    card__condition = document.createElement("div");
-    card__condition.className = "card__condition";
-    card__condition.textContent = params.condition;
-    card__infoWrapper.appendChild(card__condition);
-
-    return weather__card;
 }
 
 function getCoordinatesFromPlacemarks(placemarks)
@@ -313,13 +284,14 @@ function getMinDistanceBetweenPoints(distance)
         return distance / 4;
 }
 
-
 function clearRoute(e) {
     /*Очищаем поля*/
     startLatitude.value = 0;
     startLongtitude.value = 0;
     endLatitude.value = 0;
     endLongtitude.value = 0;
+    /*удаляем информацию о погоде*/
+    weatherBar.innerHTML = "";
     /*Удаляем плейсмарки*/
     for(var i = 0; i < waypointMarks.length; i++)
         myMap.geoObjects.remove(waypointMarks[i]);
@@ -342,4 +314,55 @@ function getDayInYear(date){
     var oneDay = 1000 * 60 * 60 * 24;
     var day = Math.floor(diff / oneDay);
     return day;
+}
+
+function createCard(params){
+    weather__card = document.createElement("div");
+    weather__card.className = "weather__card ";
+    weather__card.id = "card_" + params.id;
+
+    wrapper__waypoint_time = document.createElement("div");
+    wrapper__waypoint_time.className = "wrapper__waypoint_time";
+    weather__card.appendChild(wrapper__waypoint_time);
+
+    card__waypoint = document.createElement("img");
+    card__waypoint.className = "card__waypoint";
+    card__waypoint.src = params.imageWaypoint;
+    wrapper__waypoint_time.appendChild(card__waypoint);
+
+    card__time = document.createElement("div");
+    card__time.className = "card__time";
+    card__time.textContent = params.time;
+    wrapper__waypoint_time.appendChild(card__time);
+
+    wrapper__temp_wind = document.createElement("div");
+    wrapper__temp_wind.className = "wrapper__temp_wind";
+    weather__card.appendChild(wrapper__temp_wind);
+
+    card__temp = document.createElement("div");
+    card__temp.className = "card__temp";
+    card__temp.textContent = "°С";// to be updated
+    wrapper__temp_wind.appendChild(card__temp)
+
+    card__wind = document.createElement("div");
+    card__wind.className = "card__wind";
+    card__wind.textContent = ""; //to be updated
+    wrapper__temp_wind.appendChild(card__wind);
+
+    card__condition = document.createElement("img");
+    card__condition.className = "card__condition";
+    card__condition.src = "img/loading.gif"; //to be updated
+    weather__card.appendChild(card__condition);
+
+    return weather__card;
+}
+
+function updateCard(index, params){
+    card = document.getElementById("card_" + index.toString());
+    temp = card.children[1].children[0];
+    wind = card.children[1].children[1];
+    condition = card.children[2];
+    temp.textContent = params.temp.toString() + "°С";
+    wind.textContent = params.wind_speed + "м/с " + params.wind_dir;
+    condition.src = 'https://yastatic.net/weather/i/icons/blueye/color/svg/' + params.icon + '.svg';
 }
