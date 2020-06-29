@@ -1,0 +1,49 @@
+@media screen and (max-width : 1024px) {
+    main {
+        flex-direction: column;
+        flex-grow: 0;
+        width: 100%;
+        margin-bottom: 0px;
+    }
+
+    body {
+        margin: 0px;
+        padding: 0px;
+    }
+
+    header {
+        margin: 0px;
+    }
+
+    #map {
+        height: 50%;
+        margin: 0px;
+        order: 1;
+    }
+
+    #weather {
+        width: 100%;
+        max-width: 100000px;
+        min-width: 0px;
+        height: auto;
+        order: 2;
+    }
+
+    .button {
+        visibility: visible;
+    }
+
+    #sidebar {
+        width: 100%;
+        height: auto;
+        order: 3;
+        padding: 0px;
+    }
+
+    footer {
+        z-index: -1;
+        padding: 0px;
+        margin-top: 0px;
+    }
+
+}

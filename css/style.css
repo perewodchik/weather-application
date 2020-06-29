@@ -43,7 +43,8 @@ main {
     box-sizing: border-box;
     height: 100%;
     background-color: #bec7ca;
-    padding: 8px;
+    padding-left: 8px;
+    padding-right: 8px;
     width: 300px;
 }
 
@@ -52,7 +53,7 @@ main {
     display: flex;
     flex-direction: column;
     height:100%;
-    
+    margin: 0px;
 }
 
 .fieldset-text, .fieldset-radio  {
@@ -76,12 +77,12 @@ main {
     flex-grow: 1;
 }
 
-#form__spacer {
+.spacer {
     flex-grow: 1;
     flex-shrink: 1;
 }
 
-#form__submit {
+#form__submit, #form__clearRoute {
     height: 48px;
     width: 100%;
     text-align: center;
@@ -152,9 +153,9 @@ footer {
 #weather {
     box-sizing: border-box;
     height: 100%;
-    min-width: 300px;
-    max-width: 300px;
     width: 300px;
+    max-width: 300px;
+    min-width: 300px;
     background-color:  #bec7ca;
     display: flex;
     flex-direction: column;
