@@ -11,70 +11,34 @@
 <body>
     <header>
         <img class="header__logo" src="img/logo.png">
-        <p>WEATHERLY</p>
+        <p class="logo_name">WEATHERLY</p>
+        <select id="travel_type">
+            <option value="pedestrian">Пеший</option>
+            <option value="bicycle">Велосипед</option>
+            <option value="auto">Автомобиль</option>
+        </select>
+        <label class="label-text" for="input__speed">
+            <input type="range" id="input__speed" name="speed" min="1" max="30" value="6">
+            <span id="span__speed">6</span>км/ч
+        </label>
         <div class="spacer"></div>
-        <div class="button" tabindex="0">
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-          </div>
+        
     </header>
     <main>
-        <div id="weather">Инструкция</div>
-        <div id="map"></div>
-        <div id="sidebar">
-            <form id="sidebar__form">
-                <fieldset class ="fieldset-text">
-                    <legend>Стартовая позиция</legend>
-                    <label class="label-text" for="start__latitude"><span class="label__span">Широта:  </span> 
-                        <input disabled id="start__latitude" name="start__latitude" value="0">
-                    </label>
-                    <label class="label-text" for="start__longtitude"><span class="label__span">Долгота:  </span> 
-                        <input disabled id="start__longtitude" name="start__longtitude" value="0">
-                    </label>
-                </fieldset>
-
-                <fieldset class ="fieldset-text">
-                    <legend>Конечная позиция</legend>
-                    <label class="label-text" for="end__latitude"><span class="label__span">Широта:  </span> 
-                        <input disabled id="end__latitude" name="end__latitude" value="0">
-                    </label>
-                    <label class="label-text" for="end__longtitude"><span class="label__span">Долгота:  </span> 
-                        <input disabled id="end__longtitude" name="end__longtitude" value="0">
-                    </label>
-                </fieldset>
-
-                <fieldset class ="fieldset-radio">
-                    <legend>Тип перемещения</legend>
-                    <input name="travel_type" type="radio" id="radioChoice1" value="pedestrian" >
-                    <label class="label-radio" for="radioChoice1">Пеший</label>
-                    <br>
-                    <input name="travel_type" type="radio" id="radioChoice2" value="bicycle" checked>
-                    <label class="label-radio" for="radioChoice2">Велосипед</label>
-                    <br>
-                    <input name="travel_type" type="radio" id="radioChoice3" value="auto">
-                    <label class="label-radio" for="radioChoice3">Автомобиль</label>
-                </fieldset>
-
-                <fieldset class ="fieldset-radio">
-                    <legend>Скорость</legend>
-                    <label class="label-text" for="input__speed">
-                        <input type="range" id="input__speed" name="speed" min="1" max="30" value="6">
-                        <span id="span__speed">6</span>км/ч
-                    </label>
-                </fieldset>
-
-                <input type="button" id="form__clearRoute"  value="очистить маршрут"></submit>
-                <div id="spacer"></div>
-
-                <input  type="button" id="form__submit"  value="Проложить маршрут"></submit>
-            </form>
+        <div id="weather">
+            <p>Здравствуйте! Weatherly - это сайт, благодаря которому Вы сможете не только проложить маршрут, но и узнать погоду на нем. </p>
+            <p>Кликните на карту и нажмите "Добавить точку", чтобы указать стартовую позицию, аналогично добавляйте остальные точки маршрута. В правом окне выберите тип перемещения и задайте скорость. Остается только нажать   "Проложить маршрут". </p>
+            <p>И помните, что лучше потратить минуту на просмотр маршрута, чем столкнуться с неожиданностями в пути.</p>
         </div>
+        <div id="map"></div>
+        
     </main>
 
     <footer>
-        <a target="_blank" class="footer__a" href="https://github.com/perewodchik/weather-application">Гитхаб репозиторий проекта</a>
-        <p class="footer__copyright">© 2020</p>
+        <!-- <a target="_blank" class="footer__a" href="https://github.com/perewodchik/weather-application">Гитхаб репозиторий проекта</a>
+        <p class="footer__copyright">© 2020</p> -->
+        <input type="button" id="form__clearRoute"  value="очистить маршрут"></submit>
+        <input  type="button" id="form__submit"  value="Проложить маршрут"></submit>
     </footer>
 
     <script src="js/main.js" type="text/javascript"></script>

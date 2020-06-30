@@ -1,13 +1,10 @@
-var startLatitude       = document.getElementById("start__latitude"),
-    startLongtitude     = document.getElementById("start__longtitude"),
-    endLatitude         = document.getElementById("end__latitude"),
-    endLongtitude       = document.getElementById("end__longtitude"),
-    radioButtons        = document.getElementsByName("travel_type"),
-    speedInput          = document.getElementById("input__speed");
+
+var travel_type         = document.getElementById("travel_type"),
+    speedInput          = document.getElementById("input__speed"),
     submit              = document.getElementById("form__submit"),
-    clearRouteButton    = document.getElementById("form__clearRoute");
-    weatherBar          = document.getElementById("weather");
-    speed               = document.getElementById("input__speed");
+    clearRouteButton    = document.getElementById("form__clearRoute"),
+    weatherBar          = document.getElementById("weather"),
+    speed               = document.getElementById("input__speed"),
     way                 = undefined,
     coords              = [0,0],
     myMap               = undefined,
@@ -55,22 +52,16 @@ function init() {
 
                     if(waypointMarks.length == 0)
                     {
-                        startLatitude.value = coords[0];
-                        startLongtitude.value = coords[1];
                         placemark.options.set("iconImageHref", "img/waypoint0.png");
                     }
                     if(waypointMarks.length > 0)
                     {
                         if(waypointMarks.length > 1)
                             waypointMarks[waypointMarks.length-1].options.set("iconImageHref", "img/waypoint" + (waypointMarks.length-1).toString() + ".png");
-                        placemark.options.set("iconImageHref", "img/waypoint4.png");
-                        endLatitude.value = coords[0];
-                        endLongtitude.value = coords[1];
+                        placemark.options.set("iconImageHref", "img/waypoint6.png");
                     }
                 
-                    
-                    
-                    if(waypointMarks.length <= 4)
+                    if(waypointMarks.length <= 6)
                     {
                         myMap.geoObjects.add(placemark);
                         waypointMarks.push(placemark);
@@ -98,21 +89,21 @@ speedInput.addEventListener("input", function(e){
     
 /*Обработчик события для кнопки "проложить маршрут"*/
 submit.addEventListener('click', function(e) {
-    if(waypointMarks.length  == 1)
+    if(waypointMarks.length  <= 1)
         return;
 
-    for(var i = 0; i < radioButtons.length; i++){
-        if(radioButtons[i].checked){
-            travel_type = radioButtons[i].value;
-            break;
-        }
-    }
+    // for(var i = 0; i < radioButtons.length; i++){
+    //     if(radioButtons[i].checked){
+    //         travel_type = radioButtons[i].value;
+    //         break;
+    //     }
+    // }
 
     /* Создаем маршрут в виде промиса */
 
     route = new ymaps.route(getCoordinatesFromPlacemarks(waypointMarks),
     { 
-        routingMode: travel_type,
+        routingMode: document.getElementById("travel_type").value,
         mapStateAutoApply: true,
         multiRoute: true
     }).then(function(route) {

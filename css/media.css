@@ -6,44 +6,22 @@
         margin-bottom: 0px;
     }
 
-    body {
-        margin: 0px;
-        padding: 0px;
-    }
-
     header {
-        margin: 0px;
+        height: 10vh;
     }
 
     #map {
-        height: 50%;
-        margin: 0px;
-        order: 1;
+        height: 60vh;
     }
 
     #weather {
         width: 100%;
         max-width: 100000px;
         min-width: 0px;
-        height: auto;
+        height: 30vh;
         order: 2;
     }
 
-    .button {
-        visibility: visible;
-    }
-
-    #sidebar {
-        width: 100%;
-        height: auto;
-        order: 3;
-        padding: 0px;
-    }
-
-    footer {
-        z-index: -1;
-        padding: 0px;
-        margin-top: 0px;
-    }
+    
 
 }
