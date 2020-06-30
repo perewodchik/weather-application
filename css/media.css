@@ -1,27 +1,47 @@
 @media screen and (max-width : 1024px) {
+
+    body {
+        flex-direction: column;
+    }
+
     main {
         flex-direction: column;
         flex-grow: 0;
         width: 100%;
         margin-bottom: 0px;
+        height: 90vh;
     }
 
     header {
-        height: 10vh;
+        height: 5vh;
+    }
+
+    .header__logo {
+        margin: 0vh;
+        height: 5vh;
+        width: 5vh;
     }
 
     #map {
-        height: 60vh;
+        height: 50vh;
+        flex-grow: 1;
     }
 
     #weather {
         width: 100%;
         max-width: 100000px;
         min-width: 0px;
-        height: 30vh;
+        height: 40vh;
         order: 2;
     }
 
-    
+    .weather__card {
+        width: 90%;
+        height: 100px;
+    }
+
+    footer {
+        height: 5vh;
+    }
 
 }

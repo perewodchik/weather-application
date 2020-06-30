@@ -78,10 +78,7 @@ function init() {
     });
 }
 
-clearRouteButton.addEventListener('click', clearRoute)
-speedInput.addEventListener("input", function(e){
-    document.getElementById("span__speed").textContent = speedInput.value;
-})
+clearRouteButton.addEventListener('click', clearRoute);
     
 /*Обработчик события для кнопки "проложить маршрут"*/
 submit.addEventListener('click', function(e) {

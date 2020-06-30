@@ -16,7 +16,7 @@ body {
 
 header {
     background-color: #6561f0;
-    height: 6vh;
+    height: 5vh;
     width: 100vw;
     display: flex;
     flex-direction: row;
@@ -221,4 +221,12 @@ footer {
 
 #travel_type {
     margin-left: 48px;
+}
+
+.logo_name {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    vertical-align: middle;
+    line-height: 2.5vh;
 }
