@@ -113,6 +113,7 @@ submit.addEventListener('click', function(e) {
             return;
         }
 
+        var routeDistance = myRoute.properties.get("distance").value;
 
         myRoute.getPaths().options.set({strokeColor: '0000ffff', strokeWidth: 5, opacity: 0.9});
 
@@ -124,10 +125,11 @@ submit.addEventListener('click', function(e) {
         myMap.geoObjects.add(myRoute.getPaths());
 
         
+        
         if(waypointMarks.length == 2)
         {
             var lastPoint = waypointMarks[0].geometry.getCoordinates();
-            var minDistance = getMinDistanceBetweenPoints(myRoute.properties.get("distance").value);
+            var minDistance = getMinDistanceBetweenPoints(routeDistance);
             var counter = 1;
             for (var i = 0; i < myRoute.getPaths().getLength(); i++) {
                 var way = myRoute.getPaths().get(i);
@@ -150,6 +152,7 @@ submit.addEventListener('click', function(e) {
         
 
         var dateAtWaypoint = new Date();
+        var cards = [];
         speedInMetersPerSecond = 3; //3 м/с
         for(var i = 0; i < waypointMarks.length; i++)
         {
@@ -163,7 +166,7 @@ submit.addEventListener('click', function(e) {
             weatherPlacemark = createPlacemark(waypointMarks[i].geometry.getCoordinates(), {image: "img/loading.gif", iconImageOffset: [8,-24]});
             weatherPlacemarks.push(weatherPlacemark);
             //(params.time / 10 > 0) ? params.time : "0" + params.time.toString()
-            weatherBar.appendChild(createCard({
+            cards.push(createCard({
                 id: i,
                 time: dateAtWaypoint.getHours().toString() + ":" + 
                 (dateAtWaypoint.getMinutes().toString().length == 1 ? "0" : "") +
@@ -179,7 +182,13 @@ submit.addEventListener('click', function(e) {
         //выводим наши плейсмарки на карту
         for(var i = 0; i < weatherPlacemarks.length; i++)
             myMap.geoObjects.add(weatherPlacemarks[i]);
-            
+          
+        distanceHeader = document.createElement("h2");
+        distanceHeader.textContent = "Протяженность маршрута: " + (routeDistance / 1000).toString() + " км"; 
+        weatherBar.appendChild(distanceHeader);
+        for(var i = 0; i < cards.length; i++)
+            weatherBar.appendChild(cards[i]);
+
     }); 
 });
 
@@ -263,7 +272,7 @@ function getMinDistanceBetweenPoints(distance)
 
 function clearRoute(e) {
     /*удаляем информацию о погоде*/
-    weatherBar.innerHTML = "";
+    weatherBar.innerHTML = '<p>Добро пожаловать! Weatherly - это сайт, благодаря которому Вы сможете не только проложить маршрут, но и узнать погоду на нем. </p><p>Кликните на карту и нажмите "Добавить точку", чтобы указать стартовую позицию, аналогично добавляйте остальные точки маршрута. В правом окне выберите тип перемещения и задайте скорость. Остается только нажать   "Проложить маршрут". </p><p>И помните, что лучше потратить минуту на просмотр маршрута, чем столкнуться с неожиданностями в пути.</p>';
     /*Удаляем плейсмарки*/
     for(var i = 0; i < waypointMarks.length; i++)
         myMap.geoObjects.remove(waypointMarks[i]);
