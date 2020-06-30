@@ -1,7 +1,5 @@
 
-var travel_type         = document.getElementById("travel_type"),
-    speedInput          = document.getElementById("input__speed"),
-    submit              = document.getElementById("form__submit"),
+var submit              = document.getElementById("form__submit"),
     clearRouteButton    = document.getElementById("form__clearRoute"),
     weatherBar          = document.getElementById("weather"),
     speed               = document.getElementById("input__speed"),
@@ -15,10 +13,8 @@ var travel_type         = document.getElementById("travel_type"),
     waypointMarks       = [];
     currentDate         = new Date(); 
 
-document.getElementById("span__speed").textContent = speedInput.value;
 ymaps.ready(init);
  
-
 function init() {
     /*  Инициализация карты  */
     myMap = new ymaps.Map("map", {
@@ -92,13 +88,6 @@ submit.addEventListener('click', function(e) {
     if(waypointMarks.length  <= 1)
         return;
 
-    // for(var i = 0; i < radioButtons.length; i++){
-    //     if(radioButtons[i].checked){
-    //         travel_type = radioButtons[i].value;
-    //         break;
-    //     }
-    // }
-
     /* Создаем маршрут в виде промиса */
 
     route = new ymaps.route(getCoordinatesFromPlacemarks(waypointMarks),
@@ -164,7 +153,7 @@ submit.addEventListener('click', function(e) {
         
 
         var dateAtWaypoint = new Date();
-        speedInMetersPerSecond = speed.value / 3.6;
+        speedInMetersPerSecond = 3; //3 м/с
         for(var i = 0; i < waypointMarks.length; i++)
         {
             if(i != 0)
@@ -276,11 +265,6 @@ function getMinDistanceBetweenPoints(distance)
 }
 
 function clearRoute(e) {
-    /*Очищаем поля*/
-    startLatitude.value = 0;
-    startLongtitude.value = 0;
-    endLatitude.value = 0;
-    endLongtitude.value = 0;
     /*удаляем информацию о погоде*/
     weatherBar.innerHTML = "";
     /*Удаляем плейсмарки*/
