@@ -1,16 +1,14 @@
 
-var submit              = document.getElementById("form__submit"),
+var weatherBar          = document.getElementById("weather"),
+    submit              = document.getElementById("form__submit"),
     clearRouteButton    = document.getElementById("form__clearRoute"),
-    weatherBar          = document.getElementById("weather"),
-    speed               = document.getElementById("input__speed"),
     way                 = undefined,
-    coords              = [0,0],
     myMap               = undefined,
     myRoute             = undefined,
+    travel_type         = undefined,
     weatherPlacemarks   = [],
     windDirections      = [],
-    travel_type         = undefined;
-    waypointMarks       = [];
+    waypointMarks       = [],
     currentDate         = new Date(); 
 
 ymaps.ready(init);
@@ -25,6 +23,8 @@ function init() {
     myMap.controls.add(
         new ymaps.control.ZoomControl()  // Добавление элемента управления картой
     );
+    myMap.copyrights.add('Weatherly 2020');
+    myMap.cursors.push('pointer');
     
     /*Обработка клика для выбора стартовой и конечной позиции*/
     myMap.events.add('click', function (e) {
@@ -184,7 +184,7 @@ submit.addEventListener('click', function(e) {
             myMap.geoObjects.add(weatherPlacemarks[i]);
           
         distanceHeader = document.createElement("h2");
-        distanceHeader.textContent = "Протяженность маршрута: " + (routeDistance / 1000).toString() + " км"; 
+        distanceHeader.textContent = "Протяженность маршрута: " + (Math.round((routeDistance/1000 + Number.EPSILON) * 100) / 100).toString() + " км"; 
         weatherBar.appendChild(distanceHeader);
         for(var i = 0; i < cards.length; i++)
             weatherBar.appendChild(cards[i]);
