@@ -38,7 +38,7 @@ header {
     color: white
 }
 
-.header__logo {
+#header__logo {
     height: 5vh;
     width: 5vh;
     object-fit: cover;

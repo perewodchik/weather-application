@@ -9,7 +9,8 @@ var travel_type         = document.getElementById("travel_type"),
     weatherPlacemarks   = [],
     windDirections      = [],
     waypointMarks       = [],
-    currentDate         = new Date();
+    currentDate         = new Date(),
+    placemarkH          = undefined;
 
 ymaps.ready(init);
  
@@ -30,6 +31,7 @@ function init() {
     map.events.add('click', function (e) {
         if (!map.balloon.isOpen()) {
             coords = e.get('coords');
+            console.log(coords);
 
             var minSpeed = 1,
                 maxSpeed = 1000,
@@ -82,13 +84,11 @@ function init() {
                         if(waypointMarks.length > 1)
                             waypointMarks[waypointMarks.length-1].options.set(
                                 "iconImageHref", "img/waypoint" + (waypointMarks.length-1).toString() + ".png");
-                        placemark.options.set("iconImageHref", "img/waypoint6.png");
+                        placemark.options.set("iconImageHref", "img/waypoint10.png");
                     }
                 
                     placemark.options.set("speed", input__speed.value);
-                    console.log("added speed");
-                    console.log(placemark.options.get("speed"));
-                    if(waypointMarks.length <= 6)
+                    if(waypointMarks.length <= 10)
                     {
                         map.geoObjects.add(placemark);
                         waypointMarks.push(placemark);
@@ -107,9 +107,22 @@ function init() {
             map.balloon.close();
         }
     });
+
+    document.getElementById("header__logo").addEventListener("click", function(e) {
+        if(placemarkH == undefined){
+            placemarkH = createPlacemark([30.037800439414188, 31.25028483728282], {image:"img/hint.png"});
+            map.geoObjects.add(placemarkH);
+        }
+        else{
+            alert("removed");
+            map.geoObjects.remove(placemarkH);
+            placemarkH = undefined;
+        }
+    });
 }
 
 clearRouteButton.addEventListener('click', clearRoute);
+
     
 /*Обработчик события для кнопки "проложить маршрут"*/
 submit.addEventListener('click', function(e) {
@@ -161,6 +174,7 @@ submit.addEventListener('click', function(e) {
         {
             var lastPoint = waypointMarks[0].geometry.getCoordinates();
             var minDistance = getMinDistanceBetweenPoints(routeDistance);
+            console.log(minDistance);
             var counter = 1;
             for (var i = 0; i < myRoute.getPaths().getLength(); i++) {
                 var way = myRoute.getPaths().get(i);
@@ -188,13 +202,11 @@ submit.addEventListener('click', function(e) {
         {
             if(i != 0)
             {
-                console.log(waypointMarks[i].options.get("speed"));
                 var distanceBetweenPoints = ymaps.coordSystem.geo.getDistance(
                     waypointMarks[i-1].geometry.getCoordinates(), 
                     waypointMarks[i].geometry.getCoordinates());
                     dateAtWaypoint.setSeconds(dateAtWaypoint.getSeconds()
                      + distanceBetweenPoints / (waypointMarks[i-1].options.get("speed") / 3.6));
-                console.log(dateAtWaypoint);
             }
             weatherPlacemark = createPlacemark(waypointMarks[i].geometry.getCoordinates(), {image: "img/loading.gif", iconImageOffset: [8,-24]});
             weatherPlacemarks.push(weatherPlacemark);
@@ -292,14 +304,7 @@ function getCoordinatesFromPlacemarks(placemarks)
 
 function getMinDistanceBetweenPoints(distance)
 {
-    if(distance < 2000)
-        return distance * 2; 
-    else if(distance < 4000)
-        return distance / 2;
-    else if(distance < 8000)
-        return distance / 3;
-    else
-        return distance / 4;
+    return distance / Math.min(10, Math.floor( Math.log(distance/1000) / Math.log(1.7)) );
 }
 
 function clearRoute(e) {
