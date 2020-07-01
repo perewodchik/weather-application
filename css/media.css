@@ -1,4 +1,4 @@
-@media screen and (max-width : 1024px) {
+@media screen and (max-width : 600px) {
 
     body {
         flex-direction: column;
@@ -38,6 +38,26 @@
     .weather__card {
         width: 90%;
         height: 100px;
+    }
+
+    #travel_type {
+        -webkit-appearance: none;/* Chrome */
+        -moz-appearance: none;/* Firefox */
+        appearance: none;
+        text-align: center;
+        height: 100%;
+        width: 50%;
+        background-color: rgb(240, 169, 230);
+        border: none;
+    }
+
+    .header__route {
+        visibility: hidden;
+    }
+
+    .custom-select {
+        height: 100%;
+        width: 66%;
     }
 
     footer {

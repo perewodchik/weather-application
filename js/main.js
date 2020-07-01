@@ -1,48 +1,75 @@
 
-var weatherBar          = document.getElementById("weather"),
+var travel_type         = document.getElementById("travel_type"),
+    weatherBar          = document.getElementById("weather"),
     submit              = document.getElementById("form__submit"),
     clearRouteButton    = document.getElementById("form__clearRoute"),
     way                 = undefined,
-    myMap               = undefined,
+    map                 = undefined,
     myRoute             = undefined,
-    travel_type         = undefined,
     weatherPlacemarks   = [],
     windDirections      = [],
     waypointMarks       = [],
-    currentDate         = new Date(); 
+    currentDate         = new Date();
 
 ymaps.ready(init);
  
 function init() {
     /*  Инициализация карты  */
-    myMap = new ymaps.Map("map", {
+    map = new ymaps.Map("map", {
         center: [54.724770, 20.527879], // Координаты центра карты
         zoom: 15                        // Маcштаб карты
     }); 
 
-    myMap.controls.add(
+    map.controls.add(
         new ymaps.control.ZoomControl()  // Добавление элемента управления картой
     );
-    myMap.copyrights.add('Weatherly 2020');
-    myMap.cursors.push('pointer');
+    map.copyrights.add('Weatherly 2020');
+    map.cursors.push('pointer');
     
     /*Обработка клика для выбора стартовой и конечной позиции*/
-    myMap.events.add('click', function (e) {
-        if (!myMap.balloon.isOpen()) {
+    map.events.add('click', function (e) {
+        if (!map.balloon.isOpen()) {
             coords = e.get('coords');
 
+            var minSpeed = 1,
+                maxSpeed = 1000,
+                defaultSpeed = 10;
+                    
+            switch(travel_type.value)
+            {
+                case "pedestrian": 
+                    maxSpeed = 12;
+                    defaultSpeed = 4;
+                    break;
+                case "bicycle":
+                    maxSpeed = 36;
+                    defaultSpeed = 16;
+                    break;
+                case "auto":
+                    maxSpeed = 120;
+                    defaultSpeed = 40;
+                    break;
+            }
+
             /*Открываем балун с выбором позиции*/
-            myMap.balloon.open(coords, {
+            map.balloon.open(coords, {
                 contentHeader:'Выберите позицию',
-                contentBody: '<div id="choosePoint">Добавить точку</div>',
-                contentFooter:'<sup>Щелкните по позиции</sup>'
+                contentBody: '<div id="choosePoint">Добавить точку</div> \
+                    <input type="range" id="input__speed" name="speed" \
+                    min="1" max="' + maxSpeed + '" value="' + defaultSpeed + 
+                    '"><div id="speedometer">'+ defaultSpeed +' км/ч</div>'
             }).then(function(balloon){
+
+
+                input__speed = document.getElementById("input__speed");
+                input__speed.addEventListener("input", function(e) {
+                    document.getElementById("speedometer").textContent = input__speed.value + " км/ч";
+                });
 
                 /*Обрабатываем нажатия на стартовую/конечную позицию*/
                 choostPoint = document.getElementById("choosePoint");
-
                 choosePoint.addEventListener('click', function(){ 
-                    myMap.balloon.close();
+                    map.balloon.close();
 
                     placemark = createPlacemark(coords, {image:"img/waypoint.png"});
 
@@ -53,27 +80,31 @@ function init() {
                     if(waypointMarks.length > 0)
                     {
                         if(waypointMarks.length > 1)
-                            waypointMarks[waypointMarks.length-1].options.set("iconImageHref", "img/waypoint" + (waypointMarks.length-1).toString() + ".png");
+                            waypointMarks[waypointMarks.length-1].options.set(
+                                "iconImageHref", "img/waypoint" + (waypointMarks.length-1).toString() + ".png");
                         placemark.options.set("iconImageHref", "img/waypoint6.png");
                     }
                 
+                    placemark.options.set("speed", input__speed.value);
+                    console.log("added speed");
+                    console.log(placemark.options.get("speed"));
                     if(waypointMarks.length <= 6)
                     {
-                        myMap.geoObjects.add(placemark);
+                        map.geoObjects.add(placemark);
                         waypointMarks.push(placemark);
                     }
                     else
                     {
-                        myMap.geoObjects.remove(waypointMarks[waypointMarks.length-1]);
+                        map.geoObjects.remove(waypointMarks[waypointMarks.length-1]);
                         waypointMarks[waypointMarks.length-1] = placemark;
-                        myMap.geoObjects.add(placemark);
+                        map.geoObjects.add(placemark);
                     }
                 }, false);
 
             })
         }
         else {
-            myMap.balloon.close();
+            map.balloon.close();
         }
     });
 }
@@ -89,21 +120,21 @@ submit.addEventListener('click', function(e) {
 
     route = new ymaps.route(getCoordinatesFromPlacemarks(waypointMarks),
     { 
-        routingMode: document.getElementById("travel_type").value,
+        routingMode: travel_type.value,
         mapStateAutoApply: true,
         multiRoute: true
     }).then(function(route) {
-        myRoute && myMap.geoObjects.remove(myRoute.getPaths());
+        myRoute && map.geoObjects.remove(myRoute.getPaths());
         myRoute = undefined;
         route.getWayPoints().options.set("visible", false);
         myRoute = route.getRoutes().get(0);
 
         //Очищаем предыдущие метки
         for(var i = 0; i < weatherPlacemarks.length; i++)
-            myMap.geoObjects.remove(weatherPlacemarks[i]);
+            map.geoObjects.remove(weatherPlacemarks[i]);
         weatherPlacemarks = [];
         for(var i = 0; i < windDirections.length; i++)
-            myMap.geoObjects.remove(windDirections[i]);
+            map.geoObjects.remove(windDirections[i]);
         windDirections = [];
         weatherBar.innerHTML = "";
         
@@ -122,7 +153,7 @@ submit.addEventListener('click', function(e) {
         myRoute.getPaths().options.set("iconLayout", "default#imageWithContent");
         myRoute.getPaths().options.set("iconImageSize", [0,0]);
 
-        myMap.geoObjects.add(myRoute.getPaths());
+        map.geoObjects.add(myRoute.getPaths());
 
         
         
@@ -141,8 +172,8 @@ submit.addEventListener('click', function(e) {
                     {
                         lastPoint = refPoints[j];
                         waypointMark = createPlacemark(refPoints[j], {image:"img/waypoint" + counter.toString() + ".png"});
-                        
-                        myMap.geoObjects.add(waypointMark);
+                        waypointMark.options.set("speed", waypointMarks[0].options.get("speed"));
+                        map.geoObjects.add(waypointMark);
                         waypointMarks.splice(counter, 0, waypointMark);
                         counter++;
                     }
@@ -153,19 +184,20 @@ submit.addEventListener('click', function(e) {
 
         var dateAtWaypoint = new Date();
         var cards = [];
-        speedInMetersPerSecond = 3; //3 м/с
         for(var i = 0; i < waypointMarks.length; i++)
         {
             if(i != 0)
             {
+                console.log(waypointMarks[i].options.get("speed"));
                 var distanceBetweenPoints = ymaps.coordSystem.geo.getDistance(
                     waypointMarks[i-1].geometry.getCoordinates(), 
                     waypointMarks[i].geometry.getCoordinates());
-                    dateAtWaypoint.setSeconds(dateAtWaypoint.getSeconds() + distanceBetweenPoints / speedInMetersPerSecond);
+                    dateAtWaypoint.setSeconds(dateAtWaypoint.getSeconds()
+                     + distanceBetweenPoints / (waypointMarks[i-1].options.get("speed") / 3.6));
+                console.log(dateAtWaypoint);
             }
             weatherPlacemark = createPlacemark(waypointMarks[i].geometry.getCoordinates(), {image: "img/loading.gif", iconImageOffset: [8,-24]});
             weatherPlacemarks.push(weatherPlacemark);
-            //(params.time / 10 > 0) ? params.time : "0" + params.time.toString()
             cards.push(createCard({
                 id: i,
                 time: dateAtWaypoint.getHours().toString() + ":" + 
@@ -181,7 +213,7 @@ submit.addEventListener('click', function(e) {
         
         //выводим наши плейсмарки на карту
         for(var i = 0; i < weatherPlacemarks.length; i++)
-            myMap.geoObjects.add(weatherPlacemarks[i]);
+            map.geoObjects.add(weatherPlacemarks[i]);
           
         distanceHeader = document.createElement("h2");
         distanceHeader.textContent = "Протяженность маршрута: " + (Math.round((routeDistance/1000 + Number.EPSILON) * 100) / 100).toString() + " км"; 
@@ -224,7 +256,7 @@ function handleWeather(coords, date, placemark, number) {
         placemark.options.set("iconImageHref", "https://yastatic.net/weather/i/icons/blueye/color/svg/" + weather_info.icon + ".svg");
         windPlacemark = createPlacemark(coords, {image: "img/" + weather_info.wind_dir + ".png", iconImageOffset: [8,-56]});
         windDirections.push(windPlacemark);
-        myMap.geoObjects.add(windPlacemark);
+        map.geoObjects.add(windPlacemark);
 
         updateCard(number, weather_info);
 
@@ -275,18 +307,18 @@ function clearRoute(e) {
     weatherBar.innerHTML = '<p>Добро пожаловать! Weatherly - это сайт, благодаря которому Вы сможете не только проложить маршрут, но и узнать погоду на нем. </p><p>Кликните на карту и нажмите "Добавить точку", чтобы указать стартовую позицию, аналогично добавляйте остальные точки маршрута. В правом окне выберите тип перемещения и задайте скорость. Остается только нажать   "Проложить маршрут". </p><p>И помните, что лучше потратить минуту на просмотр маршрута, чем столкнуться с неожиданностями в пути.</p>';
     /*Удаляем плейсмарки*/
     for(var i = 0; i < waypointMarks.length; i++)
-        myMap.geoObjects.remove(waypointMarks[i]);
+        map.geoObjects.remove(waypointMarks[i]);
     waypointMarks = [];
     /*Удаляем состояние погоды*/
     for(var i = 0; i < weatherPlacemarks.length; i++)
-            myMap.geoObjects.remove(weatherPlacemarks[i]);
+            map.geoObjects.remove(weatherPlacemarks[i]);
         weatherPlacemarks = [];
     /*Удаляем направления ветра*/
     for(var i = 0; i < windDirections.length; i++)
-            myMap.geoObjects.remove(windDirections[i]);
+            map.geoObjects.remove(windDirections[i]);
         windDirections = [];
     /*Удаляем маршрут*/
-    myRoute && myMap.geoObjects.remove(myRoute.getPaths());
+    myRoute && map.geoObjects.remove(myRoute.getPaths());
 }
 
 function getDayInYear(date){
@@ -347,3 +379,89 @@ function updateCard(index, params){
     wind.textContent = params.wind_speed + "м/с " + params.wind_dir;
     condition.src = 'https://yastatic.net/weather/i/icons/blueye/color/svg/' + params.icon + '.svg';
 }
+
+
+
+//DON'T EVEN LOOK AT IT !!!
+//It's copypasted for custom select
+
+var x, i, j, l, ll, selElmnt, a, b, c;
+/* Look for any elements with the class "custom-select": */
+x = document.getElementsByClassName("custom-select");
+l = x.length;
+for (i = 0; i < l; i++) {
+  selElmnt = x[i].getElementsByTagName("select")[0];
+  ll = selElmnt.length;
+  /* For each element, create a new DIV that will act as the selected item: */
+  a = document.createElement("DIV");
+  a.setAttribute("class", "select-selected");
+  a.innerHTML = selElmnt.options[selElmnt.selectedIndex].innerHTML;
+  x[i].appendChild(a);
+  /* For each element, create a new DIV that will contain the option list: */
+  b = document.createElement("DIV");
+  b.setAttribute("class", "select-items select-hide");
+  for (j = 1; j < ll; j++) {
+    /* For each option in the original select element,
+    create a new DIV that will act as an option item: */
+    c = document.createElement("DIV");
+    c.innerHTML = selElmnt.options[j].innerHTML;
+    c.addEventListener("click", function(e) {
+        /* When an item is clicked, update the original select box,
+        and the selected item: */
+        var y, i, k, s, h, sl, yl;
+        s = this.parentNode.parentNode.getElementsByTagName("select")[0];
+        sl = s.length;
+        h = this.parentNode.previousSibling;
+        for (i = 0; i < sl; i++) {
+          if (s.options[i].innerHTML == this.innerHTML) {
+            s.selectedIndex = i;
+            h.innerHTML = this.innerHTML;
+            y = this.parentNode.getElementsByClassName("same-as-selected");
+            yl = y.length;
+            for (k = 0; k < yl; k++) {
+              y[k].removeAttribute("class");
+            }
+            this.setAttribute("class", "same-as-selected");
+            break;
+          }
+        }
+        h.click();
+    });
+    b.appendChild(c);
+  }
+  x[i].appendChild(b);
+  a.addEventListener("click", function(e) {
+    /* When the select box is clicked, close any other select boxes,
+    and open/close the current select box: */
+    e.stopPropagation();
+    closeAllSelect(this);
+    this.nextSibling.classList.toggle("select-hide");
+    this.classList.toggle("select-arrow-active");
+  });
+}
+
+function closeAllSelect(elmnt) {
+  /* A function that will close all select boxes in the document,
+  except the current select box: */
+  var x, y, i, xl, yl, arrNo = [];
+  x = document.getElementsByClassName("select-items");
+  y = document.getElementsByClassName("select-selected");
+  xl = x.length;
+  yl = y.length;
+  for (i = 0; i < yl; i++) {
+    if (elmnt == y[i]) {
+      arrNo.push(i)
+    } else {
+      y[i].classList.remove("select-arrow-active");
+    }
+  }
+  for (i = 0; i < xl; i++) {
+    if (arrNo.indexOf(i)) {
+      x[i].classList.add("select-hide");
+    }
+  }
+}
+
+/* If the user clicks anywhere outside the select box,
+then close all select boxes: */
+document.addEventListener("click", closeAllSelect);
