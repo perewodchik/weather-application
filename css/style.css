@@ -237,6 +237,9 @@ footer {
   }
   
   .select-selected {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
     box-sizing: border-box;
     background-color: #789cea;
     height: 100%;
