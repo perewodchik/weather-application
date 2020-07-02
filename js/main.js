@@ -53,6 +53,9 @@ function init() {
                     break;
             }
 
+            if(waypointMarks.length != 0)
+                defaultSpeed = waypointMarks[waypointMarks.length - 1].options.get("speed");
+
             /*Открываем балун с выбором позиции*/
             map.balloon.open(coords, {
                 contentHeader:'Выберите позицию',
@@ -114,7 +117,6 @@ function init() {
             map.geoObjects.add(placemarkH);
         }
         else{
-            alert("removed");
             map.geoObjects.remove(placemarkH);
             placemarkH = undefined;
         }
@@ -304,7 +306,8 @@ function getCoordinatesFromPlacemarks(placemarks)
 
 function getMinDistanceBetweenPoints(distance)
 {
-    return distance / Math.min(10, Math.floor( Math.log(distance/1000) / Math.log(1.7)) );
+    if(distance < 1000) return distance;
+    return distance / Math.min(10, Math.ceil(Math.log(distance/1000) / Math.log(1.7)));
 }
 
 function clearRoute(e) {
