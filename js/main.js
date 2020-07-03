@@ -160,8 +160,13 @@ submit.addEventListener('click', function(e) {
         }
 
         var routeDistance = myRoute.properties.get("distance").value;
-
-        myRoute.getPaths().options.set({strokeColor: '0000ffff', strokeWidth: 5, opacity: 0.9});
+        for(var i = 0; i < myRoute.getPaths().getLength(); i++)
+        {
+            if(i % 2 == 0)
+                myRoute.getPaths().get(i).options.set({strokeColor: '0000ffff', strokeWidth: 5, opacity: 0.9});
+            else
+                myRoute.getPaths().get(i).options.set({strokeColor: '#ff0000', strokeWidth: 5, opacity: 0.9});
+        }
 
         /*Удаляем бесполезную иконку*/
         myRoute.getPaths().options.set("iconImageHref", "img/placemark_end.png");
@@ -312,7 +317,19 @@ function getMinDistanceBetweenPoints(distance)
 
 function clearRoute(e) {
     /*удаляем информацию о погоде*/
-    weatherBar.innerHTML = '<p>Добро пожаловать! Weatherly - это сайт, благодаря которому Вы сможете не только проложить маршрут, но и узнать погоду на нем. </p><p>Кликните на карту и нажмите "Добавить точку", чтобы указать стартовую позицию, аналогично добавляйте остальные точки маршрута. В правом окне выберите тип перемещения и задайте скорость. Остается только нажать   "Проложить маршрут". </p><p>И помните, что лучше потратить минуту на просмотр маршрута, чем столкнуться с неожиданностями в пути.</p>';
+    weatherBar.innerHTML = ' <p>Добро пожаловать! Weatherly - это сайт, благодаря которому Вы сможете не только проложить маршрут, но и узнать погоду на нем. </p> \
+    <p>В правом верхнем углу можно задайте тип маршрута. Далее начните добавлять точки кликом по карте. В всплывшем окошке выберите скорость и нажмите "Добавить точку"</p> \
+    <p>После добавления всех точек (их может быть до 10) необходимо нажать на кнопку «Проложить маршрут»</p> \
+    <p>И помните, что лучше потратить минуту на просмотр маршрута, чем столкнуться с неожиданностями в пути.</p> \
+    <p class="Roboto-Medium">В разработке принимали участие:</p> \
+        <ul class="u__list"> \
+            <li>Смирнов Владислав</li> \
+            <li>Иванов Николай</li> \
+            <li>Столбов Валерий</li> \
+            <li>Рахимбердин Ян</li> \
+            <li>Кононов Илья</li> \
+            <li>Алещенков Евгений</li> \
+        </ul>';
     /*Удаляем плейсмарки*/
     for(var i = 0; i < waypointMarks.length; i++)
         map.geoObjects.remove(waypointMarks[i]);
