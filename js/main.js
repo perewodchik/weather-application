@@ -168,12 +168,14 @@ submit.addEventListener('click', function(e) {
                 myRoute.getPaths().get(i).options.set({strokeColor: '#ff0000', strokeWidth: 5, opacity: 0.9});
         }
 
+        map.geoObjects.add(myRoute.getPaths());
+
         /*Удаляем бесполезную иконку*/
         myRoute.getPaths().options.set("iconImageHref", "img/placemark_end.png");
         myRoute.getPaths().options.set("iconLayout", "default#imageWithContent");
         myRoute.getPaths().options.set("iconImageSize", [0,0]);
 
-        map.geoObjects.add(myRoute.getPaths());
+        
 
         
         
